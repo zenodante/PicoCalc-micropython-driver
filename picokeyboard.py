@@ -115,10 +115,7 @@ class PicoKeyboard:
                 self.hardwarekeyBuf.append(key)
                 numkeysInhardware -= 1
         #now deside how many keys to send to buf
-        if nbytes == 0:
-            requestedkeys = len(buf)
-        else:
-            requestedkeys = min(nbytes,len(buf))
+        requestedkeys = min(nbytes if nbytes else len(buf), len(buf))
         if len(self.hardwarekeyBuf)==0: #after read in the key, still no key in buffer
             return None
 
