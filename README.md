@@ -1,7 +1,13 @@
-Micropython drivers for PicoCalc 
+# MICROPYTHON DRIVERS FOR PICOCALC
 
-Keyboard driver in python : Done (not tested yet, havn't got my PicoCalc...)
-ILI9488 driver in C module/ python : C part has been done for fast 4,8 bit LUT operation, frameBuf based class in python in progress.
-Speaker driver: N/A
+## KEYBOARD DRIVER IN PYTHON  
+Done (not tested yet, haven't got my PicoCalc...)
 
-After I got my PicoCalc, I will compiler a micropython firmware with REPL redirection to TFT and i2c keyboard and ulab module.
+## ILI9488 DRIVER IN C MODULE/PYTHON  
+C part has been done for fast 4,8 bit LUT operation, frameBuf based class in python in progress.
+
+## SPEAKER DRIVER  
+N/A
+
+## FUTURE PLAN  
+After I got my PicoCalc, I will compile a micropython firmware with REPL redirection to TFT and i2c keyboard and ulab module.
