@@ -47,10 +47,12 @@ class PicoKeyboard:
         return self.temp
     
     def read_reg8(self,reg):
-        self.temp[0]=reg
-        self.i2c.writeto(self.address,self.temp[0:1])
-        self.i2c.readfrom_into(self.address,self.temp[0:1])
-        return self.temp[0]
+        self.i2c.writeto(self.address, bytes(reg)) 
+        #self.temp[0]=reg
+        #self.i2c.writeto(self.address,self.temp[0:1])
+        return self.i2c.readfrom(self.address, 1)[0]
+        #self.i2c.readfrom_into(self.address,memoryview(self.temp)[0:1])
+        #return self.temp
     
     def write_reg(self,reg,value):
         self.temp[0]=reg| _WRITE_MASK
@@ -83,7 +85,7 @@ class PicoKeyboard:
 
     def keyCount(self):
         buf = self.read_reg16(_REG_KEY)
-        return (buf[1] & _KEY_COUNT_MASK)
+        return (buf[0] & _KEY_COUNT_MASK)
 
     def keyEvent(self):
         if (self.keyCount() == 0):
@@ -109,17 +111,18 @@ class PicoKeyboard:
     
     def readinto(self, buf, nbytes=0):
         numkeysInhardware = self.keyCount()#how many keys in hardware
+        #print(numkeysInhardware)
         if numkeysInhardware != 0:
-            while numkeysInhardware > 0:#read all keys from hardware
-                key = self.keyEvent()
-                self.hardwarekeyBuf.append(key)
-                numkeysInhardware -= 1
+            for i in range(numkeysInhardware):
+                key=self.keyEvent()
+                self.hardwarekeyBuf.append(key[:])
         #now deside how many keys to send to buf
         requestedkeys = min(nbytes if nbytes else len(buf), len(buf))
+        keysLeft = requestedkeys
         if len(self.hardwarekeyBuf)==0: #after read in the key, still no key in buffer
             return None
-
-        while requestedkeys > 0:
+        while keysLeft > 0:
+            
             #fill all keys until key list is empty
             if len(self.hardwarekeyBuf)  == 0:
                 break #all keys has been read and process
@@ -128,39 +131,40 @@ class PicoKeyboard:
             if state == _StatePress or state == _StateLongPress:
                 if key >=0xB4 and key <= 0xB7:
                     #direction keys
-                    if requestedkeys >= 3:#still have enough space in buf
+                    if keysLeft >= 3:#still have enough space in buf
                         
-                        buf[-requestedkeys] = '\x1b'
-                        buf[-requestedkeys+1] = '['
+                        buf[-keysLeft] = 0x1b
+                        buf[-keysLeft+1] = ord('[')
                         if key == 0xB4:
-                            buf[-requestedkeys+2] = 'D'
+                            buf[-keysLeft+2] = ord('D')
                         elif key == 0xB5:
-                            buf[-requestedkeys+2] = 'A'
+                            buf[-keysLeft+2] = ord('A')
                         elif key == 0xB6:
-                            buf[-requestedkeys+2] = 'B'
+                            buf[-keysLeft+2] = ord('B')
                         elif key == 0xB7:
-                            buf[-requestedkeys+2] = 'C'
-                        requestedkeys -= 3                       
+                            buf[-keysLeft+2] = ord('C')
+                        keysLeft -= 3                       
                     else:
                         #no enough space in buf
                         break
                 else:
                     #self.hardwarekeyBuf.pop(0) 
                     if key == 0x0A:
-                        buf[-requestedkeys] = '\n' #return key
+                        buf[-keysLeft] = ord('\n') #return key
                     elif key == 0xB1:  # KEY_ESC
-                        buf[-requestedkeys] = '\x1b'
+                        buf[-keysLeft] = 0x1b
                     elif key == 0x08 or key == 0xD4: #backspace and del
-                        buf[-requestedkeys] = '\x7F'
+                        buf[-keysLeft] = 0x7F
                     else:
-                        buf[-requestedkeys] = key
-                    requestedkeys -= 1
+                        buf[-keysLeft] = key
+                    keysLeft -= 1
             
             self.hardwarekeyBuf.pop(0) #remove the processed key from key list
             
 
-        return (len(buf) - requestedkeys)
+        return (requestedkeys-keysLeft)
 
 
         
         
+
