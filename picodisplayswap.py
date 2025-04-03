@@ -12,7 +12,7 @@ class picoDisplaySwap(framebuf.FrameBuffer):
             self.buffer = bytearray(self.width * self.height)
         elif color_type == framebuf.GS2_HMSB:
             self.buffer = bytearray(self.width * self.height//4)
-        elif color_type == framebuf.MONO_HMSB
+        elif color_type == framebuf.MONO_HMSB:
             self.buffer = bytearray(self.width * self.height//8)
 
 
