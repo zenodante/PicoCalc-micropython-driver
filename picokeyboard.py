@@ -146,14 +146,17 @@ class PicoKeyboard:
                             elif key == 0xB7:
                                 self.hardwarekeyBuf.append(ord('C'))
                         elif key == 0x0A:
-                            #self.hardwarekeyBuf.append(ord('\r'))
+                            self.hardwarekeyBuf.append(ord('\r'))
                             self.hardwarekeyBuf.append(ord('\n')) #return key
                         elif key == 0xB1:  # KEY_ESC
                             self.hardwarekeyBuf.append(0x1b)
                         elif key == 0x08 or key == 0xD4: #backspace and del
                             self.hardwarekeyBuf.append(0x7F)
                         else:
-                            if self.isCtrl == True:
+                            if self.isAlt == True:
+                                if key ==ord(' ') or key==ord(',') or key==ord('.'):
+                                    pass
+                            elif self.isCtrl == True:
                                 if key ==ord('c'):
                                     self.hardwarekeyBuf.append(0x03)
                                 elif key ==ord('d'):
