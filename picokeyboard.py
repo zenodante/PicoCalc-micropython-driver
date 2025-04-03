@@ -1,5 +1,6 @@
 from micropython import const
 from machine import Pin, I2C
+from collections import deque
 import time
 
 _REG_VER = const(0x01) # fw version
@@ -29,13 +30,19 @@ _StateRelease = const(3)
 
 class PicoKeyboard:
     def __init__(self,sclPin=7,sdaPin=6,address=0x1f):
-        self.hardwarekeyBuf = list()
+        self.hardwarekeyBuf = deque(list(),30)
         self.i2c = I2C(1,scl=Pin(sclPin),sda=Pin(sdaPin),freq=10000)
         #self.i2c.scan()
+        self.ignor = True
         self.address = address
         self.temp=bytearray(2)
         self.reset()
-
+        self.isShift = False
+        self.isCtrl = False
+        self.isAlt = False
+    
+    def ignor_mod(self):
+        self.ignor = True
 
     def write_cmd(self,cmd):
         self.i2c.writeto(self.address,bytearray([cmd]))
@@ -107,62 +114,100 @@ class PicoKeyboard:
         self.write_reg(_REG_BK2,value)
 
     def battery(self):
-        return self.read_reg8(_REG_BAT)
+        return self.read_reg16(_REG_BAT)
     
-    def readinto(self, buf, nbytes=0):
+    def readinto(self, buf):
+
         numkeysInhardware = self.keyCount()#how many keys in hardware
-        #print(numkeysInhardware)
         if numkeysInhardware != 0:
             for i in range(numkeysInhardware):
-                key=self.keyEvent()
-                self.hardwarekeyBuf.append(key[:])
+                keyGot=self.keyEvent()
+                state = keyGot[0]
+                key = keyGot[1]
+                if state == _StatePress or state == _StateLongPress:
+
+                    if key == 0xa2:
+                        self.isShift =True
+                    elif key == 0xa5:
+                        self.isCtrl = True
+                    elif key == 0xa1:
+                        self.isAlt = True              
+                    else:
+                        if key >=0xB4 and key <= 0xB7:
+                        #direction keys
+                            self.hardwarekeyBuf.append(0x1b)
+                            self.hardwarekeyBuf.append(ord('['))
+                            if key == 0xB4:
+                                self.hardwarekeyBuf.append(ord('D'))
+                            elif key == 0xB5:
+                                self.hardwarekeyBuf.append(ord('A'))
+                            elif key == 0xB6:
+                                self.hardwarekeyBuf.append(ord('B'))
+                            elif key == 0xB7:
+                                self.hardwarekeyBuf.append(ord('C'))
+                        elif key == 0x0A:
+                            #self.hardwarekeyBuf.append(ord('\r'))
+                            self.hardwarekeyBuf.append(ord('\n')) #return key
+                        elif key == 0xB1:  # KEY_ESC
+                            self.hardwarekeyBuf.append(0x1b)
+                        elif key == 0x08 or key == 0xD4: #backspace and del
+                            self.hardwarekeyBuf.append(0x7F)
+                        else:
+                            if self.isCtrl == True:
+                                if key ==ord('c'):
+                                    self.hardwarekeyBuf.append(0x03)
+                                elif key ==ord('d'):
+                                    self.hardwarekeyBuf.append(0x04)
+                                elif key ==ord('z'):
+                                    self.hardwarekeyBuf.append(0x1A)
+                                elif key ==ord('h'):
+                                    self.hardwarekeyBuf.append(0x08)
+                                elif key ==ord('j'):
+                                    self.hardwarekeyBuf.append(0x0A)
+                                elif key ==ord('m'):
+                                    self.hardwarekeyBuf.append(0x0D)
+                            else:
+                                self.hardwarekeyBuf.append(key)
+                else:
+                    if key == 0xa2:
+                        self.isShift =False
+                    elif key == 0xa5:
+                        self.isCtrl = False
+                    elif key == 0xa1:
+                        self.isAlt = False   
+      
+                    
+                        
+                
+                
+                
+                #self.hardwarekeyBuf.append(key[:])
         #now deside how many keys to send to buf
-        requestedkeys = min(nbytes if nbytes else len(buf), len(buf))
+        requestedkeys = len(buf)
         keysLeft = requestedkeys
         if len(self.hardwarekeyBuf)==0: #after read in the key, still no key in buffer
             return None
+        #print("init buf")
+        #print(buf)
+        #print("hardware key buf size")
+        #print(len(self.hardwarekeyBuf))
         while keysLeft > 0:
             
             #fill all keys until key list is empty
             if len(self.hardwarekeyBuf)  == 0:
                 break #all keys has been read and process
-            state = self.hardwarekeyBuf[0][0]
-            key = self.hardwarekeyBuf[0][1]
-            if state == _StatePress or state == _StateLongPress:
-                if key >=0xB4 and key <= 0xB7:
-                    #direction keys
-                    if keysLeft >= 3:#still have enough space in buf
-                        
-                        buf[-keysLeft] = 0x1b
-                        buf[-keysLeft+1] = ord('[')
-                        if key == 0xB4:
-                            buf[-keysLeft+2] = ord('D')
-                        elif key == 0xB5:
-                            buf[-keysLeft+2] = ord('A')
-                        elif key == 0xB6:
-                            buf[-keysLeft+2] = ord('B')
-                        elif key == 0xB7:
-                            buf[-keysLeft+2] = ord('C')
-                        keysLeft -= 3                       
-                    else:
-                        #no enough space in buf
-                        break
-                else:
-                    #self.hardwarekeyBuf.pop(0) 
-                    if key == 0x0A:
-                        buf[-keysLeft] = ord('\n') #return key
-                    elif key == 0xB1:  # KEY_ESC
-                        buf[-keysLeft] = 0x1b
-                    elif key == 0x08 or key == 0xD4: #backspace and del
-                        buf[-keysLeft] = 0x7F
-                    else:
-                        buf[-keysLeft] = key
-                    keysLeft -= 1
             
-            self.hardwarekeyBuf.pop(0) #remove the processed key from key list
+            key = self.hardwarekeyBuf.popleft()#remove the processed key from key list
+            buf[-keysLeft]=key
+            keysLeft -=1
             
-
-        return (requestedkeys-keysLeft)
+        #print("read buff")   
+        #print(buf)
+        #print(requestedkeys-keysLeft)
+        if requestedkeys-keysLeft == 0:
+            return None
+        else:
+            return (requestedkeys-keysLeft)
 
 
         
