@@ -2,7 +2,7 @@ import framebuf
 import uio
 
 class FBConsole(uio.IOBase):
-    def __init__(self, fb, bgcolor=0, fgcolor=-1, width=-1, height=-1, readobj=None):
+    def __init__(self, fb, bgcolor=0, fgcolor=-1, width=-1, height=-1,fontX=6,fontY=8, readobj=None):
         self.readobj = readobj
         self.fb = fb
         if width > 0:
@@ -21,7 +21,7 @@ class FBConsole(uio.IOBase):
                 raise ValueError
         self.bgcolor = bgcolor
         self.fgcolor = fgcolor
-        self.line_size(6,8)
+        self.font_size(fontX,fontY)
         self.cls()
 
     def cls(self):
@@ -34,7 +34,7 @@ class FBConsole(uio.IOBase):
         except:
             pass
 
-    def line_size(self, x,y):
+    def font_size(self, x,y):
         self.lineheight = y
         self.cwidth = x
         self.w =  self.width // x
