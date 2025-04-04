@@ -2,7 +2,7 @@ import framebuf
 import uio
 
 class FBConsole(uio.IOBase):
-    def __init__(self, fb, bgcolor=0, fgcolor=-1, width=-1, height=-1,fontX=6,fontY=8, readobj=None):
+    def __init__(self, fb, bgcolor=0, fgcolor=1, width=320, height=320,readobj=None,fontX=6,fontY=8):
         self.readobj = readobj
         self.fb = fb
         if width > 0:
