@@ -256,7 +256,6 @@ static MP_DEFINE_CONST_FUN_OBJ_3(init_obj, init);
 
 
 static mp_obj_t drawTxt6x8(mp_uint_t n_args, const mp_obj_t *args){
-  mp_obj_t str_obj, mp_obj_t X0, mp_obj_t Y0, mp_obj_t color
   // extract arguments
 
   const char *str = mp_obj_str_get_str(args[0]);
@@ -274,14 +273,15 @@ static mp_obj_t drawTxt6x8(mp_uint_t n_args, const mp_obj_t *args){
       chr = 32;
     }
       // get char data
-    const uint8_t *chr_data = &currentTextTable[(chr - 32) * 8];
+    const uint8_t *chr_data = &currentTextTable[(chr - 32) * currentTextY];
       // loop over char data
     y = y0;
       
-    for (int j = 0; j < currentTextY-1; j++, y++) {
-      x = x0;
+    for (; y < y0+currentTextY; y++) {
+      
       if (0 <= y && y < DISPLAY_HEIGHT) {
-        uint8_t line_data = chr_data[j]; 
+        x = x0;
+        uint8_t line_data = *chr_data++; 
         for (;x<x0+currentTextX-1;x++){
 
           if (line_data&0x80)&&(0 <= x && x < DISPLAY_WIDTH) { // only draw if pixel set
