@@ -15,7 +15,7 @@
 #include "pico/stdlib.h"
 #include "pico/multicore.h"
 #include "hardware/sync.h"
-
+#include "font6x8e500.h"
 #define    SWRESET   0x01
 #define    SLPOUT    0x11
 #define    INVON     0x21
@@ -44,8 +44,11 @@ static volatile bool autoUpdate;
 static uint16_t lineBuffA[64];
 static uint16_t lineBuffB[64];
 void (*pColorUpdate)(uint8_t *, uint32_t, const uint16_t *);
-
-static uint16_t LUT[256] = {//vt100 type 16 colors
+void (*pSetPixel)(int32_t,int32_t,uint16_t);
+static uint8_t currentTextY;
+static uint8_t currentTextX;
+static uint8_t *currentTextTable;
+static uint16_t LUT[256] = {
     //0x0000, 0x4A19, 0x2A79, 0x2A04, 0x86AA, 0xA95A, 0x18C6, 0x9DFF, 
     //0x09F8, 0x00FD, 0x64FF, 0x2607, 0x7F2D, 0xB383, 0xB5FB, 0x75FE
     0x0000,0x00A0,0xA004,0xA0A6,0x1D00,0x15A0,0xBD04,0x7DEF,
@@ -61,6 +64,11 @@ void LUT4Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
 void LUT2Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
 void LUT1Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
 void core1_main(void);
+void setpixelRGB565(int x, int y,uint16_t color);
+void setpixelLUT8(int x, int y,uint16_t color);
+void setpixelLUT4(int x, int y,uint16_t color);
+void setpixelLUT2(int x, int y,uint16_t color);
+void setpixelLUT1(int x, int y,uint16_t color);
 /*
 #define FRAMEBUF_MVLSB    (0)
 #define FRAMEBUF_RGB565   (1)
@@ -84,6 +92,39 @@ void core1_main() {
   }
 }
 
+
+void setpixelRGB565(int x, int y,uint16_t color){
+  ((uint16_t *)frameBuff)[x + DISPLAY_HEIGHT*y]= color;
+}
+
+void setpixelLUT8(int x, int y,uint16_t color){
+  ((uint8_t *)frameBuff)[x + DISPLAY_HEIGHT*y]= (uint8_t)color;
+}
+
+void setpixelLUT4(int x, int y,uint16_t color){
+  uint8_t *pixel = &((uint8_t *)frameBuff)[(x + (DISPLAY_HEIGHT*y))>>1];
+
+  if (x&0x01) {
+    *pixel = ((uint8_t)color & 0x0f) | (*pixel & 0xf0);
+  } else {
+    *pixel = ((uint8_t)color << 4) | (*pixel & 0x0f);
+  }
+}
+
+void setpixelLUT2(int x, int y,uint16_t color){
+  uint8_t *pixel = &((uint8_t *)frameBuff)[(x + (DISPLAY_HEIGHT*y))>>2];
+  uint8_t shift = (x & 0x3) << 1;
+  uint8_t mask = 0x3 << shift;
+  color = ((uint8_t)color & 0x3) << shift;
+  *pixel = color | (*pixel & (~mask));
+}
+
+void setpixelLUT1(int x, int y,uint16_t color){
+  size_t index = (x + y * DISPLAY_HEIGHT) >> 3;
+  unsigned int offset =  x & 0x07;
+  ((uint8_t *)frameBuff)[index] = (((uint8_t *)frameBuff)[index] & ~(0x01 << offset)) | ((color != 0) << offset);
+}
+
 static mp_obj_t init(mp_obj_t fb_obj, mp_obj_t colorType, mp_obj_t auto){
     mp_buffer_info_t buf_info;
     mp_get_buffer_raise(fb_obj, &buf_info, MP_BUFFER_READ);
@@ -91,22 +132,29 @@ static mp_obj_t init(mp_obj_t fb_obj, mp_obj_t colorType, mp_obj_t auto){
     bool autoUpdate = mp_obj_is_true(auto);
 
     colorType = mp_obj_get_uint(colorType);
-
+    currentTextY = 8;
+    currentTextX = 6;
+    currentTextTable=font6x8tt;
     switch (colorType){
       case 1: //565
         pColorUpdate = RGB565Update;
+        pSetPixel = setpixelRGB565;
         break;
       case 2: //16 color
         pColorUpdate = LUT4Update;
+        pSetPixel = setpixelLUT4;
         break;
       case 4: //2 color
         pColorUpdate = LUT1Update;
+        pSetPixel = setpixelLUT1;
         break;
       case 5: //4 color
         pColorUpdate = LUT2Update;
+        pSetPixel = setpixelLUT2;
         break;
       case 6: //256 color
         pColorUpdate = LUT8Update;
+        pSetPixel = setpixelLUT8;
         break;
  
     }
@@ -176,6 +224,48 @@ static mp_obj_t init(mp_obj_t fb_obj, mp_obj_t colorType, mp_obj_t auto){
 }
 static MP_DEFINE_CONST_FUN_OBJ_3(init_obj, init);
 
+
+static mp_obj_t drawTxt6x8(mp_uint_t n_args, const mp_obj_t *args){
+  mp_obj_t str_obj, mp_obj_t X0, mp_obj_t Y0, mp_obj_t color
+  // extract arguments
+
+  const char *str = mp_obj_str_get_str(args[0]);
+  int x0 = mp_obj_get_int(args[1]);
+  int y0 = mp_obj_get_int(args[2]);
+  uint16_t color = mp_obj_get_uint(args[3]);
+  int x;
+  int y;
+
+  // loop over chars
+  for (; *str; ++str) {
+      // get char and make sure its in range of font
+    int chr = *(uint8_t *)str;
+    if (chr < 32 ) {
+      chr = 32;
+    }
+      // get char data
+    const uint8_t *chr_data = &currentTextTable[(chr - 32) * 8];
+      // loop over char data
+    y = y0;
+      
+    for (int j = 0; j < currentTextY-1; j++, y++) {
+      x = x0;
+      if (0 <= y && y < DISPLAY_HEIGHT) {
+        uint8_t line_data = chr_data[j]; 
+        for (;x<x0+currentTextX-1;x++){
+
+          if (line_data&0x80)&&(0 <= x && x < DISPLAY_WIDTH) { // only draw if pixel set
+              pSetPixel(x, y, color);
+            }
+          line_data << 1;
+        }
+      }    
+    }
+    x0 +=currentTextX;
+  }
+  return mp_const_none;
+}
+static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(drawTxt6x8_obj, 4, 4, drawTxt6x8);
 
 static mp_obj_t setLUT(mp_obj_t LUT_obj){
     mp_buffer_info_t buf_info;
@@ -436,38 +526,38 @@ void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
         updateLineBuff = lineBuffB;
       }
       for (int i=2;i>0;i--){
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>2)&0x03];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>2)&0x03];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>2)&0x03];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>2)&0x03];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>2)&0x03];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>2)&0x03];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>2)&0x03];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>2)&0x03];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
       }
       while (dma_channel_is_busy(st_dma));
       Write_dma((const uint8_t *)updateLineBuff,64*2);
@@ -482,10 +572,10 @@ void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
       }
       
       while(leftPixels--){
-        currentPixel = *frameBuff++;color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
-        color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+        currentPixel = *frameBuff++;color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
         color = LUT[(currentPixel>>2)&0x03];*currentLineBuff++ = color;
-        color = LUT[currentPixel&0x03];*currentLineBuff++ = color;
+        color = LUT[(currentPixel>>4)&0x03];*currentLineBuff++ = color;
+        color = LUT[(currentPixel>>6)];*currentLineBuff++ = color;
       }
       while (dma_channel_is_busy(st_dma));
       Write_dma((const uint8_t *)lineBuffB,leftPixels*8);
@@ -519,38 +609,38 @@ void LUT1Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
         updateLineBuff = lineBuffB;
       }
       for (int i=2;i>0;i--){
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>0x07)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x06)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x05)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x04)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x03)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x02)&0x01];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x01];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>0x01)&0x01];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x01];*currentLineBuff++ = color;
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>0x07)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x06)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x05)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x04)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x03)&0x01];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>0x02)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x01)&0x01];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x01];*currentLineBuff++ = color;
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>0x07)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x06)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x05)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x04)&0x01];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>0x03)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x02)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x01)&0x01];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x01];*currentLineBuff++ = color;
-          currentPixel = *frameBuff++;color = LUT[(currentPixel>>0x07)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x06)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x05)&0x01];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>0x04)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x03)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x02)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x05)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x06)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x07)&0x01];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x01];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>0x01)&0x01];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x02)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x03)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x04)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x05)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x06)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x07)&0x01];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x01)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x02)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x03)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x04)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x05)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x06)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x07)&0x01];*currentLineBuff++ = color;
+          currentPixel = *frameBuff++;color = LUT[currentPixel&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x01)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x02)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x03)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x04)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x05)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x06)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x07)&0x01];*currentLineBuff++ = color;
       }
       while (dma_channel_is_busy(st_dma));
       Write_dma((const uint8_t *)updateLineBuff,64*2);
@@ -565,14 +655,14 @@ void LUT1Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
       }
       
       while(leftPixels--){
-        currentPixel = *frameBuff++;color = LUT[(currentPixel>>0x07)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x06)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x05)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x04)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x03)&0x01];*currentLineBuff++ = color;
-          color = LUT[(currentPixel>>0x02)&0x01];*currentLineBuff++ = color;
+        currentPixel = *frameBuff++;color = LUT[currentPixel&0x01];*currentLineBuff++ = color;
           color = LUT[(currentPixel>>0x01)&0x01];*currentLineBuff++ = color;
-          color = LUT[currentPixel&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x02)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x03)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x04)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x05)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x06)&0x01];*currentLineBuff++ = color;
+          color = LUT[(currentPixel>>0x07)&0x01];*currentLineBuff++ = color;
       }
       while (dma_channel_is_busy(st_dma));
       Write_dma((const uint8_t *)lineBuffB,leftPixels*16);
@@ -598,6 +688,7 @@ static const mp_rom_map_elem_t picocalcdisplay_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_update), MP_ROM_PTR(&update_obj) },
     { MP_ROM_QSTR(MP_QSTR_startAutoUpdate), MP_ROM_PTR(&startAutoUpdate_obj) },
     { MP_ROM_QSTR(MP_QSTR_stopAutoUpdate), MP_ROM_PTR(&stopAutoUpdate_obj) },
+    { MP_ROM_QSTR(MP_QSTR_drawTxt6x8), MP_ROM_PTR(&drawTxt6x8_obj) },
 
 };
 static MP_DEFINE_CONST_DICT(picocalcdisplay_globals, picocalcdisplay_globals_table);
