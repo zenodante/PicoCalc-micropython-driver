@@ -368,6 +368,9 @@ void RGB565Update(uint8_t *frameBuff,uint32_t length,const uint16_t *LUT) {
     gpio_put(DC_PIN, 1); // data mode
     Write_dma((const uint8_t*)frameBuff, length*2);    
     while (dma_channel_is_busy(st_dma));
+    while (spi_get_hw(SPI_DISP)->sr & SPI_SSPSR_BSY_BITS) {
+      tight_loop_contents();  
+    }
     gpio_put(CS_PIN, 1);    
 }
 
@@ -447,6 +450,9 @@ void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
       Write_dma((const uint8_t *)lineBuffB,leftPixels*2);
     }
     while (dma_channel_is_busy(st_dma));
+    while (spi_get_hw(SPI_DISP)->sr & SPI_SSPSR_BSY_BITS) {
+      tight_loop_contents(); 
+    }
     gpio_put(CS_PIN, 1);
   }
   
@@ -529,6 +535,9 @@ void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
       Write_dma((const uint8_t *)lineBuffB,leftPixels*4);
     }
     while (dma_channel_is_busy(st_dma));
+    while (spi_get_hw(SPI_DISP)->sr & SPI_SSPSR_BSY_BITS) {
+      tight_loop_contents(); 
+    }
     gpio_put(CS_PIN, 1);
   }
   
@@ -612,6 +621,9 @@ void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
       Write_dma((const uint8_t *)lineBuffB,leftPixels*8);
     }
     while (dma_channel_is_busy(st_dma));
+    while (spi_get_hw(SPI_DISP)->sr & SPI_SSPSR_BSY_BITS) {
+      tight_loop_contents(); 
+    }
     gpio_put(CS_PIN, 1);
 }  
   
@@ -699,6 +711,9 @@ void LUT1Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
       Write_dma((const uint8_t *)lineBuffB,leftPixels*16);
     }
     while (dma_channel_is_busy(st_dma));
+    while (spi_get_hw(SPI_DISP)->sr & SPI_SSPSR_BSY_BITS) {
+      tight_loop_contents(); 
+    }
     gpio_put(CS_PIN, 1);
   }
   
