@@ -14,3 +14,6 @@ code editor...
 
 ## How to use
 Hold the boot and plug the usb cable to your raspberry pi pico2/2w. Copy the uf2 file to your raspberry pi pico. Using Thonny to transfer the main.py into the flash disk root. Unplug the usb cable and tune on the power on picocalc. 
+
+
+FBconsole is a modified version of https://github.com/boochow/FBConsole
