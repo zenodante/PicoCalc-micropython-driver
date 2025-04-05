@@ -39,7 +39,7 @@
 
 static uint st_dma;
 static uint8_t *frameBuff;
-static uint8_t colorType;
+
 static volatile bool autoUpdate;
 static uint16_t lineBuffA[64];
 static uint16_t lineBuffB[64];
@@ -47,7 +47,7 @@ void (*pColorUpdate)(uint8_t *, uint32_t, const uint16_t *);
 void (*pSetPixel)(int32_t,int32_t,uint16_t);
 static uint8_t currentTextY;
 static uint8_t currentTextX;
-static uint8_t *currentTextTable;
+static const uint8_t *currentTextTable;
 static uint16_t LUT[256] = {
     //0x0000, 0x4A19, 0x2A79, 0x2A04, 0x86AA, 0xA95A, 0x18C6, 0x9DFF, 
     //0x09F8, 0x00FD, 0x64FF, 0x2607, 0x7F2D, 0xB383, 0xB5FB, 0x75FE
@@ -88,17 +88,18 @@ static uint16_t LUT[256] = {
 
 static void Write_dma(const uint8_t *src, size_t len);
 static void command(uint8_t com, size_t len, const char *data) ;
-void RGB565Update(uint8_t *frameBuff,uint32_t length,const uint16_t *LUT);
+void RGB565Update(uint8_t *frameBuff,uint32_t length, const uint16_t *LUT);
 void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
 void LUT4Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
 void LUT2Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
 void LUT1Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
 void core1_main(void);
-void setpixelRGB565(int x, int y,uint16_t color);
-void setpixelLUT8(int x, int y,uint16_t color);
-void setpixelLUT4(int x, int y,uint16_t color);
-void setpixelLUT2(int x, int y,uint16_t color);
-void setpixelLUT1(int x, int y,uint16_t color);
+void setpixelRGB565(int32_t x, int32_t y,uint16_t color);
+void setpixelLUT8(int32_t x, int32_t y,uint16_t color);
+void setpixelLUT4(int32_t x, int32_t y,uint16_t color);
+void setpixelLUT2(int32_t x, int32_t y,uint16_t color);
+void setpixelLUT1(int32_t x, int32_t y,uint16_t color);
+void core1_main(void) ;
 /*
 #define FRAMEBUF_MVLSB    (0)
 #define FRAMEBUF_RGB565   (1)
@@ -110,7 +111,7 @@ void setpixelLUT1(int x, int y,uint16_t color);
 */
 
 
-void core1_main() {
+void core1_main(void) {
   while (true) {
       if (autoUpdate) {
           __dmb();
@@ -123,15 +124,15 @@ void core1_main() {
 }
 
 
-void setpixelRGB565(int x, int y,uint16_t color){
+void setpixelRGB565(int32_t x, int32_t y,uint16_t color){
   ((uint16_t *)frameBuff)[x + DISPLAY_HEIGHT*y]= color;
 }
 
-void setpixelLUT8(int x, int y,uint16_t color){
+void setpixelLUT8(int32_t x, int32_t y,uint16_t color){
   ((uint8_t *)frameBuff)[x + DISPLAY_HEIGHT*y]= (uint8_t)color;
 }
 
-void setpixelLUT4(int x, int y,uint16_t color){
+void setpixelLUT4(int32_t x, int32_t y,uint16_t color){
   uint8_t *pixel = &((uint8_t *)frameBuff)[(x + (DISPLAY_HEIGHT*y))>>1];
 
   if (x&0x01) {
@@ -141,7 +142,7 @@ void setpixelLUT4(int x, int y,uint16_t color){
   }
 }
 
-void setpixelLUT2(int x, int y,uint16_t color){
+void setpixelLUT2(int32_t x, int32_t y,uint16_t color){
   uint8_t *pixel = &((uint8_t *)frameBuff)[(x + (DISPLAY_HEIGHT*y))>>2];
   uint8_t shift = (x & 0x3) << 1;
   uint8_t mask = 0x3 << shift;
@@ -149,19 +150,19 @@ void setpixelLUT2(int x, int y,uint16_t color){
   *pixel = color | (*pixel & (~mask));
 }
 
-void setpixelLUT1(int x, int y,uint16_t color){
+void setpixelLUT1(int32_t x, int32_t y,uint16_t color){
   size_t index = (x + y * DISPLAY_HEIGHT) >> 3;
   unsigned int offset =  x & 0x07;
   ((uint8_t *)frameBuff)[index] = (((uint8_t *)frameBuff)[index] & ~(0x01 << offset)) | ((color != 0) << offset);
 }
 
-static mp_obj_t init(mp_obj_t fb_obj, mp_obj_t colorType, mp_obj_t auto){
+static mp_obj_t init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     mp_buffer_info_t buf_info;
     mp_get_buffer_raise(fb_obj, &buf_info, MP_BUFFER_READ);
     frameBuff=(uint8_t *)buf_info.buf;
-    bool autoUpdate = mp_obj_is_true(auto);
+    autoUpdate = mp_obj_is_true(autoR);
 
-    colorType = mp_obj_get_uint(colorType);
+    int32_t colorType = mp_obj_get_int(color_type);
     currentTextY = 8;
     currentTextX = 6;
     currentTextTable=font6x8tt;
@@ -261,7 +262,7 @@ static mp_obj_t drawTxt6x8(mp_uint_t n_args, const mp_obj_t *args){
   const char *str = mp_obj_str_get_str(args[0]);
   int x0 = mp_obj_get_int(args[1]);
   int y0 = mp_obj_get_int(args[2]);
-  uint16_t color = mp_obj_get_uint(args[3]);
+  uint16_t color = mp_obj_get_int(args[3]);
   int x;
   int y;
 
@@ -284,10 +285,10 @@ static mp_obj_t drawTxt6x8(mp_uint_t n_args, const mp_obj_t *args){
         uint8_t line_data = *chr_data++; 
         for (;x<x0+currentTextX-1;x++){
 
-          if (line_data&0x80)&&(0 <= x && x < DISPLAY_WIDTH) { // only draw if pixel set
+          if ((line_data&0x80)&&(0 <= x && x < DISPLAY_WIDTH)) { // only draw if pixel set
               pSetPixel(x, y, color);
             }
-          line_data << 1;
+          line_data <<= 1;
         }
       }    
     }
@@ -313,14 +314,14 @@ static mp_obj_t startAutoUpdate(void){
   __sev();
   return mp_const_true;
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(startAutoUpdate_obj, startAutoUpdate);
+static MP_DEFINE_CONST_FUN_OBJ_0(startAutoUpdate_obj, startAutoUpdate);
 
 
 static mp_obj_t stopAutoUpdate(void){
   autoUpdate = false;
   return mp_const_true;
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(stopAutoUpdate_obj, stopAutoUpdate);
+static MP_DEFINE_CONST_FUN_OBJ_0(stopAutoUpdate_obj, stopAutoUpdate);
 
 
 static void Write_dma(const uint8_t *src, size_t len) {
@@ -367,7 +368,7 @@ void RGB565Update(uint8_t *frameBuff,uint32_t length,const uint16_t *LUT) {
     gpio_put(DC_PIN, 1); // data mode
     Write_dma((const uint8_t*)frameBuff, length*2);    
     while (dma_channel_is_busy(st_dma));
-    gpio_put(CS, 1);    
+    gpio_put(CS_PIN, 1);    
 }
 
 void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
@@ -446,7 +447,7 @@ void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
       Write_dma((const uint8_t *)lineBuffB,leftPixels*2);
     }
     while (dma_channel_is_busy(st_dma));
-    gpio_put(CS, 1);
+    gpio_put(CS_PIN, 1);
   }
   
   
@@ -528,15 +529,15 @@ void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
       Write_dma((const uint8_t *)lineBuffB,leftPixels*4);
     }
     while (dma_channel_is_busy(st_dma));
-    gpio_put(CS, 1);
+    gpio_put(CS_PIN, 1);
   }
   
   void LUT2Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
     while (dma_channel_is_busy(st_dma));
     //uint16_t lineBuffA[64];
     //uint16_t lineBuffB[64];
-    uint16_t *currentLineBuff;
-    uint16_t *updateLineBuff;
+    uint16_t *currentLineBuff=lineBuffA;
+    uint16_t *updateLineBuff=lineBuffA;
     uint32_t leftPixels = (length - (length&0xFFFFFFC0))>>2;
     uint32_t count = length>>6;
     uint8_t currentPixel=0;
@@ -611,15 +612,15 @@ void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
       Write_dma((const uint8_t *)lineBuffB,leftPixels*8);
     }
     while (dma_channel_is_busy(st_dma));
-    gpio_put(CS, 1);
+    gpio_put(CS_PIN, 1);
 }  
   
 void LUT1Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
     while (dma_channel_is_busy(st_dma));
     //uint16_t lineBuffA[64];
     //uint16_t lineBuffB[64];
-    uint16_t *currentLineBuff;
-    uint16_t *updateLineBuff;
+    uint16_t *currentLineBuff=lineBuffA;
+    uint16_t *updateLineBuff=lineBuffA;
     uint32_t leftPixels = (length - (length&0xFFFFFFC0))>>3;
     uint32_t count = length>>6;
     uint8_t currentPixel=0;
@@ -698,7 +699,7 @@ void LUT1Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
       Write_dma((const uint8_t *)lineBuffB,leftPixels*16);
     }
     while (dma_channel_is_busy(st_dma));
-    gpio_put(CS, 1);
+    gpio_put(CS_PIN, 1);
   }
   
   
