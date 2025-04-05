@@ -47,12 +47,12 @@ class PicoDisplay(framebuf.FrameBuffer):
 
 
         super().__init__(self.buffer, self.width, self.height, color_type)
-        picocalcdisplay.init(self.buffer,color_type,True)
+        picocalcdisplay.init(self.buffer,color_type,False)
 
         
 
     
-    def text(c, x0, y0, color):
+    def text(self,c, x0, y0, color):
         picocalcdisplay.drawTxt6x8(c,x0,y0,color)
 
     def show(self):

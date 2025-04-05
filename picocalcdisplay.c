@@ -118,7 +118,7 @@ void core1_main(void) {
           pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
           sleep_ms(1); 
       } else {
-          __wfe();
+          //__wfe();
       }
   }
 }
@@ -249,7 +249,7 @@ static mp_obj_t init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     command(RAMWR,0,NULL);
 
 
-    multicore_launch_core1(core1_main);
+    //multicore_launch_core1(core1_main);
 
     return mp_const_true;
 }
