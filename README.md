@@ -5,6 +5,7 @@ Done (tested, work with FBconsole now)
 
 ## ILI9488 DRIVER IN C MODULE/PYTHON  
 C part has been done for fast 1,2,4,8 bit LUT operation and 16bit 565RGB, frameBuf based swap class in python . 
+Now using core1 for framebuff update to screen. Much faster REPL display.
 
 ## SPEAKER DRIVER  
 N/A
