@@ -16,6 +16,8 @@
 #include "pico/multicore.h"
 #include "hardware/sync.h"
 #include "font6x8e500.h"
+
+
 #define    SWRESET   0x01
 #define    SLPOUT    0x11
 #define    INVON     0x21
@@ -36,6 +38,8 @@
 #define    VMCTR1    0xC5
 #define    PGAMCTRL  0xE0
 #define    NGAMCTRL  0xE1
+#define CORE1_STACK_SIZE 1024
+uint32_t core1_stack[CORE1_STACK_SIZE];
 
 static uint st_dma;
 static uint8_t *frameBuff;
@@ -93,13 +97,13 @@ void LUT8Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
 void LUT4Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
 void LUT2Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
 void LUT1Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT);
-void core1_main(void);
+//void core1_main(void);
 void setpixelRGB565(int32_t x, int32_t y,uint16_t color);
 void setpixelLUT8(int32_t x, int32_t y,uint16_t color);
 void setpixelLUT4(int32_t x, int32_t y,uint16_t color);
 void setpixelLUT2(int32_t x, int32_t y,uint16_t color);
 void setpixelLUT1(int32_t x, int32_t y,uint16_t color);
-void core1_main(void) ;
+
 /*
 #define FRAMEBUF_MVLSB    (0)
 #define FRAMEBUF_RGB565   (1)
@@ -111,15 +115,14 @@ void core1_main(void) ;
 */
 
 
-void core1_main(void) {
-  while (true) {
-      if (autoUpdate) {
-          __dmb();
-          pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
-          sleep_ms(1); 
-      } else {
-          //__wfe();
-      }
+void core1_main() {
+  //multicore_lockout_victim_init();
+  while (1) {
+    if (autoUpdate){
+      pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
+    }     
+    sleep_ms(5); 
+
   }
 }
 
@@ -248,8 +251,10 @@ static mp_obj_t init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
 
     command(RAMWR,0,NULL);
 
-
-    //multicore_launch_core1(core1_main);
+    //sleep_ms(100);
+    //pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
+    //sleep_ms(10);
+    multicore_launch_core1_with_stack(core1_main, core1_stack, CORE1_STACK_SIZE);
 
     return mp_const_true;
 }
@@ -311,7 +316,7 @@ static MP_DEFINE_CONST_FUN_OBJ_1(setLUT_obj, setLUT);
 
 static mp_obj_t startAutoUpdate(void){
   autoUpdate = true;
-  __sev();
+  //__sev();
   return mp_const_true;
 }
 static MP_DEFINE_CONST_FUN_OBJ_0(startAutoUpdate_obj, startAutoUpdate);

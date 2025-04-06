@@ -47,7 +47,7 @@ class PicoDisplay(framebuf.FrameBuffer):
 
 
         super().__init__(self.buffer, self.width, self.height, color_type)
-        picocalcdisplay.init(self.buffer,color_type,False)
+        picocalcdisplay.init(self.buffer,color_type,True)
 
         
 
