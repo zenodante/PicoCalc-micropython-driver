@@ -4,7 +4,7 @@
 
 
 ## BUILD
-'''
+```
 Folder structure
 
 |
@@ -15,8 +15,8 @@ Folder structure
 |           |-modules             //here put fbconsole.py and picocalc.py
 |-PicoCalc-micropython-driver     //folder for lcd c driver module
 |-Any other modules like ulab, etc. al
+```
 
-'''
 Build Micropython Normally, While including as user module
 ```
 cd micropython/ports/rp2
