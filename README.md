@@ -1,6 +1,22 @@
 # MICROPYTHON DRIVERS FOR PICOCALC
 
+
+
+
 ## BUILD
+
+Folder structure
+
+|
+|-micropython                      //clone micropython folder here
+|      |-ports
+|         |-rp2
+|           |-build               //create folder for build
+|           |-modules             //here put fbconsole.py and picocalc.py
+|-PicoCalc-micropython-driver     //folder for lcd c driver module
+|-Any other modules like ulab, etc. al
+
+
 Build Micropython Normally, While including as user module
 ```
 cd micropython/ports/rp2
