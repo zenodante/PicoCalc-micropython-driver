@@ -110,7 +110,6 @@ class Editor:
         "\x1b[1;5D": KEY_WORD_LEFT,
         "\x1b[1;5C": KEY_WORD_RIGHT,
         "\x03": KEY_COPY,
-        "\r": KEY_ENTER,
         "\x7f": KEY_BACKSPACE,
         "\x1b[3~": KEY_DELETE,
         "\x1b[Z": KEY_BACKTAB,
