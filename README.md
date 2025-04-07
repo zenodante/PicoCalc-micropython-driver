@@ -1,20 +1,36 @@
 # MICROPYTHON DRIVERS FOR PICOCALC
 
-## KEYBOARD DRIVER IN PYTHON  
-Done (tested, work with FBconsole now)
+## BUILD
+Build Micropython Normally, While including as user module
+```
+cd micropython/ports/rp2
+mkdir build && cd build
+cmake .. -DUSER_C_MODULES="Location/Of/PicoCalc-micropython-driver/micropython.cmake" -DMICROPY_BOARD=[TARGET BOARD]
+```
+Target Boards Can Be:
+* RPI_PICO
+* RPI_PICO2
+* RPI_PICO2_W
 
-## ILI9488 DRIVER IN C MODULE/PYTHON  
+Others untested.
+
+## INSTALLATION
+* Flash UF2 to Pico Normally
+* Place Python Files into Pico's Root Directory
+
+(Using Thonny is Easiest)
+
+## FEATURES
+#### Keyboard Driver
+Done (tested, work with FBconsole now)
+#### ILI9488 Driver In C Module/Python  
 C part has been done for fast 1,2,4,8 bit LUT operation and 16bit 565RGB, frameBuf based swap class in python . 
 Now using core1 for framebuff update to screen. Much faster REPL display.
-
-## SPEAKER DRIVER  
+#### Speaker Driver
 N/A
 
-## FUTURE PLAN  
-code editor...
-
-## How to use
-Hold the boot and plug the usb cable to your raspberry pi pico2/2w. Copy the uf2 file to your raspberry pi pico. Using Thonny to transfer the main.py into the flash disk root. Unplug the usb cable and tune on the power on picocalc. 
+## TODO
+Code Editor...
 
 
 FBconsole is a modified version of https://github.com/boochow/FBConsole
