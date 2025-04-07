@@ -189,21 +189,10 @@ class PicoKeyboard:
                             self.hardwarekeyBuf.append(0x7F)
                         else:
                             if self.isAlt == True:
-                                if key ==ord(' ') or key==ord(',') or key==ord('.'):
-                                    pass
-                            elif self.isCtrl == True:
-                                if key ==ord('c'):
-                                    self.hardwarekeyBuf.append(0x03)
-                                elif key ==ord('d'):
-                                    self.hardwarekeyBuf.append(0x04)
-                                elif key ==ord('z'):
-                                    self.hardwarekeyBuf.append(0x1A)
-                                elif key ==ord('h'):
-                                    self.hardwarekeyBuf.append(0x08)
-                                elif key ==ord('j'):
-                                    self.hardwarekeyBuf.append(0x0A)
-                                elif key ==ord('m'):
-                                    self.hardwarekeyBuf.append(0x0D)
+                                if key !=ord(' ') and key!=ord(',') and key!=ord('.'):
+                                    self.hardwarekeyBuf.append(key|0x80)
+                            elif self.isCtrl == True:   
+                                self.hardwarekeyBuf.append(key&0x1F)
                             else:
                                 self.hardwarekeyBuf.append(key)
                 else:
