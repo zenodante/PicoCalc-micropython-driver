@@ -65,7 +65,7 @@ class PicoDisplay(framebuf.FrameBuffer):
 
 class PicoKeyboard:
     def __init__(self,sclPin=7,sdaPin=6,address=0x1f):
-        self.hardwarekeyBuf = deque(list(),30)
+        self.hardwarekeyBuf = deque((),30)
         self.i2c = I2C(1,scl=Pin(sclPin),sda=Pin(sdaPin),freq=10000)
         #self.i2c.scan()
         self.ignor = True
@@ -190,7 +190,8 @@ class PicoKeyboard:
                         else:
                             if self.isAlt == True:
                                 if key !=ord(' ') and key!=ord(',') and key!=ord('.'):
-                                    self.hardwarekeyBuf.append(key|0x80)
+                                    self.hardwarekeyBuf.append(0x1b)#to match the vt100 terminal style
+                                    self.hardwarekeyBuf.append(key)
                             elif self.isCtrl == True:   
                                 self.hardwarekeyBuf.append(key&0x1F)
                             else:
