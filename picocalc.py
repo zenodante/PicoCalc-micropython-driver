@@ -152,7 +152,7 @@ class PicoKeyboard:
         return self.read_reg16(_REG_BAT)
     
     def readinto(self, buf):
-
+        
         numkeysInhardware = self.keyCount()#how many keys in hardware
         if numkeysInhardware != 0:
             for i in range(numkeysInhardware):
@@ -168,25 +168,60 @@ class PicoKeyboard:
                     elif key == 0xa1:
                         self.isAlt = True              
                     else:
+                        #check current shift/ctrl/alt state
+                        
+                        if self.isShift and self.isAlt and (not self.isCtrl):
+                            modifier=b'1;4'
+                        elif self.isShift and self.isCtrl and (not self.isAlt):
+                            modifier=b'1;6'
+                        elif self.isAlt and self.isCtrl and (not self.isShift):
+                            modifier=b'1;7'    
+                        elif self.isShift and self.isCtrl and self.isAlt:
+                            modifier=b'1;8'    
+                        elif self.isAlt and (not self.isCtrl) and (not self.isShift):
+                            modifier=b'1;3'    
+                        elif (not self.isAlt) and self.isCtrl and (not self.isShift):
+                            modifier=b'1;5'  
+                        elif (not self.isAlt) and (not self.isCtrl) and self.isShift:
+                            modifier=b'1;2'  
+                        else:
+                            modifier=b''
+
+                        
                         if key >=0xB4 and key <= 0xB7:
                         #direction keys
-                            self.hardwarekeyBuf.append(0x1b)
-                            self.hardwarekeyBuf.append(ord('['))
+                            #self.hardwarekeyBuf.append(0x1b)
+                            #self.hardwarekeyBuf.append(ord('['))
                             if key == 0xB4:
-                                self.hardwarekeyBuf.append(ord('D'))
+                                self.hardwarekeyBuf.append(b'\x1b['+modifier+b'D')
                             elif key == 0xB5:
-                                self.hardwarekeyBuf.append(ord('A'))
+                                self.hardwarekeyBuf.append(b'\x1b['+modifier+b'A')
                             elif key == 0xB6:
-                                self.hardwarekeyBuf.append(ord('B'))
+                                self.hardwarekeyBuf.append(b'\x1b['+modifier+b'B')
                             elif key == 0xB7:
-                                self.hardwarekeyBuf.append(ord('C'))
+                                self.hardwarekeyBuf.append(b'\x1b['+modifier+b'C')
                         elif key == 0x0A:
                             self.hardwarekeyBuf.append(ord('\r'))
                             self.hardwarekeyBuf.append(ord('\n')) #return key
                         elif key == 0xB1:  # KEY_ESC
                             self.hardwarekeyBuf.append(0x1b)
                         elif key == 0x08 or key == 0xD4: #backspace and del
-                            self.hardwarekeyBuf.append(0x7F)
+                            if self.isShift and self.isAlt and (not self.isCtrl):
+                                self.hardwarekeyBuf.append(b'\x1b['+b'3;4'+b'~')
+                            elif self.isShift and self.isCtrl and (not self.isAlt):
+                                self.hardwarekeyBuf.append(b'\x1b['+b'3;6'+b'~')
+                            elif self.isAlt and self.isCtrl and (not self.isShift):
+                                self.hardwarekeyBuf.append(b'\x1b['+b'3;7'+b'~')    
+                            elif self.isShift and self.isCtrl and self.isAlt:
+                                self.hardwarekeyBuf.append(b'\x1b['+b'3;8'+b'~')
+                            elif self.isAlt and (not self.isCtrl) and (not self.isShift):
+                                self.hardwarekeyBuf.append(b'\x1b['+b'3;3'+b'~')  
+                            elif (not self.isAlt) and self.isCtrl and (not self.isShift):
+                                self.hardwarekeyBuf.append(b'\x1b['+b'3;5'+b'~')  
+                            elif (not self.isAlt) and (not self.isCtrl) and self.isShift:
+                                self.hardwarekeyBuf.append(b'\x1b['+b'3;2'+b'~') 
+                            else:
+                                self.hardwarekeyBuf.append(0x7F)
                         else:
                             if self.isAlt == True:
                                 if key !=ord(' ') and key!=ord(',') and key!=ord('.'):
