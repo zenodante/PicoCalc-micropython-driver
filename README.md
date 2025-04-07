@@ -4,6 +4,7 @@
 Build Micropython Normally, While including as user module
 ```
 cd micropython/ports/rp2
+git submodule update --init --recursive
 mkdir build && cd build
 cmake .. -DUSER_C_MODULES="Location/Of/PicoCalc-micropython-driver/micropython.cmake" -DMICROPY_BOARD=[TARGET BOARD]
 ```
