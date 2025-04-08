@@ -6,7 +6,6 @@ Requires sdcard.py from the official Micropython repository
 https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py
 
 Features various system functions such as mounting and unmounting the PicoCalc's SD card, a nicer run utility, and an ls utility
-
 """
 import uos
 import machine
