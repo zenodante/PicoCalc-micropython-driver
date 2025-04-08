@@ -189,33 +189,37 @@ class PicoKeyboard:
                         #direction keys
                             #self.hardwarekeyBuf.append(0x1b)
                             #self.hardwarekeyBuf.append(ord('['))
-                            if modifier != '':
+                            if modifier != b'':
                                 parameters = b'1'
                             else:
                                 parameters = b''
                             if key == 0xB4:
-                                self.hardwarekeyBuf.append(b'\x1b['+parameters+modifier+b'D')
+                                self.hardwarekeyBuf.extend(b'\x1b['+parameters+modifier+b'D')
                             elif key == 0xB5:
-                                self.hardwarekeyBuf.append(b'\x1b['+parameters+modifier+b'A')
+                                self.hardwarekeyBuf.extend(b'\x1b['+parameters+modifier+b'A')
                             elif key == 0xB6:
-                                self.hardwarekeyBuf.append(b'\x1b['+parameters+modifier+b'B')
+                                self.hardwarekeyBuf.extend(b'\x1b['+parameters+modifier+b'B')
                             elif key == 0xB7:
-                                self.hardwarekeyBuf.append(b'\x1b['+parameters+modifier+b'C')
+                                self.hardwarekeyBuf.extend(b'\x1b['+parameters+modifier+b'C')
                         elif key == 0x0A:
                             self.hardwarekeyBuf.append(ord('\r'))
                             self.hardwarekeyBuf.append(ord('\n')) #return key
                         elif key == 0xB1:  # KEY_ESC
-                            self.hardwarekeyBuf.append(0x1b)
+                            self.hardwarekeyBuf.extend(b'\x1b\x1b')
+                        elif key == 0xD2: #KEY_HOME
+                            self.hardwarekeyBuf.extend(b'\x1b[H')
+                        elif key == 0xD5: #end
+                            self.hardwarekeyBuf.extend(b'\x1b[F')
                         elif key == 0x08 or key == 0xD4: #backspace and del
-                            if modifier != '':
+                            if modifier != b'':
                                 parameters = b'3'
-                                self.hardwarekeyBuf.append(b'\x1b['+parameters+modifier+b'~')
+                                self.hardwarekeyBuf.extend(b'\x1b['+parameters+modifier+b'~')
                             else:
                                 self.hardwarekeyBuf.append(0x7F)
                         else:
                             if self.isAlt == True:
                                 if key !=ord(' ') and key!=ord(',') and key!=ord('.'):
-                                    self.hardwarekeyBuf.append(0x1b)#to match the vt100 terminal style
+                                    self.hardwarekeyBuf.extend(b'\x1b')#to match the vt100 terminal style
                                     self.hardwarekeyBuf.append(key)
                             elif self.isCtrl == True:   
                                 self.hardwarekeyBuf.append(key&0x1F)
