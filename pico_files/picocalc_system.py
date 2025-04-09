@@ -1,15 +1,18 @@
 """
 PicoCalc system functions for micropython
-Written by: Laika, 4/8/2025
+Written by: Laika, 4/9/2025
 
 Requires sdcard.py from the official Micropython repository
 https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py
 
 Features various system functions such as mounting and unmounting the PicoCalc's SD card, a nicer run utility, and an ls utility
+
 """
+import os
 import uos
 import machine
 import sdcard
+import gc
 
 def human_readable_size(size):
     """
@@ -74,6 +77,41 @@ def files(directory="/"):
             print(f"Error accessing {entry}: {e}")
     return
 
+def memory():
+    gc.collect()
+    # Get the available and free RAM
+    free_memory = gc.mem_free()
+    allocated_memory = gc.mem_alloc()
+
+    # Total memory is the sum of free and allocated memory
+    total_memory = free_memory + allocated_memory
+    
+    human_readable_total = human_readable_size(total_memory)
+    human_readable_free = human_readable_size(free_memory)
+    
+    print(f"Total RAM: {human_readable_total}")
+    print(f"Free RAM: {human_readable_free}")
+
+def disk():
+    fs_stat = os.statvfs('/')
+
+    # Calculate total and free space
+    total_blocks = fs_stat[0]  # Total number of blocks
+    free_blocks = fs_stat[3]   # Number of free blocks
+    block_size = fs_stat[1]    # Block size in bytes
+
+    # Calculate total and free size in bytes
+    total_size = total_blocks * block_size
+    free_size = free_blocks * block_size
+
+    # Convert to kilobytes for easier reading
+    human_readable_total = human_readable_size(total_size)
+    human_readable_free = human_readable_size(free_size)
+
+    # Print the total and free space
+    print(f"Total filesystem size: {human_readable_total}")
+    print(f"Free filesystem space: {human_readable_free}")
+    
 def initsd():
     """
     SD Card mounting utility for PicoCalc.
