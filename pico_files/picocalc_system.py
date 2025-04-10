@@ -120,6 +120,7 @@ def initsd():
     Inputs: None
     Outputs: None (Mounts SD card if it is present)
     """
+    sd = None
     try:
         sd = sdcard.SDCard(
             machine.SPI(0,
