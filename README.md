@@ -33,7 +33,7 @@ Others untested.
 
 ## INSTALLATION
 * Flash UF2 to Pico Normally
-* Place Python Files into Pico's Root Directory
+* Place Python Files from pico_files into Pico's Root Directory
 
 (Using Thonny is Easiest)
 
@@ -51,3 +51,6 @@ Code Editor...
 
 ## CREDITS
 FBconsole is a modified version of https://github.com/boochow/FBConsole
+
+
+sdcard.py is from [The official Micropython Repository](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py)
