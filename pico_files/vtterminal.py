@@ -139,7 +139,7 @@ class vtterminal(uio.IOBase):
   
         self.setCursorToHome()
 
-        #self.timer.init(period=250, mode=Timer.PERIODIC, callback=self.dispCursor)
+        self.timer.init(period=250, mode=Timer.PERIODIC, callback=self.dispCursor)
 
 
     def sc_updateChar(self,x,y):
@@ -835,3 +835,4 @@ class vtterminal(uio.IOBase):
     def get_screen_size(self):
         return [self.SC_H,self.SC_W]
         
+
