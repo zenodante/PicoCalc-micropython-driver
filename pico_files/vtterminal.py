@@ -789,10 +789,10 @@ class vtterminal(uio.IOBase):
       
     def readinto(self, buf):
         self.keyBuf[:] = b'\x00' * len(self.keyBuf)
-        self.keyBuf = bytearray(30)
         n=self.inputIO.readinto(self.keyBuf)
         #append it the self.outputBuff
-        self.outputBuff.extend(self.keyBuf[0:n])
+        if n:
+            self.outputBuff.extend(self.keyBuf[0:n])
         #return the first char to the apps
         outputNum = min(len(buf),len(self.outputBuff))
 
@@ -809,7 +809,8 @@ class vtterminal(uio.IOBase):
             return None
 
     def write(self, buf):
-        return self.wr(buf)
+        
+        return self.wr(buf.decode())
 
     def rd_raw(self):
         return self.rd()
