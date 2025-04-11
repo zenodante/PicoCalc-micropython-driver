@@ -774,10 +774,10 @@ class vtterminal(uio.IOBase):
     def rd(self):
         #read from inputIO to get all key input
         self.keyBuf[:] = b'\x00' * len(self.keyBuf)
-        self.keyBuf = bytearray(30)
         n = self.inputIO.readinto(self.keyBuf)
         #append it the self.outputBuff
-        self.outputBuff.extend(self.keyBuf[0:n])
+        if n:
+            self.outputBuff.extend(self.keyBuf[0:n])
         #return the first char to the apps
         if self.outputBuff:
             return chr(self.outputBuff.popleft())
@@ -817,4 +817,3 @@ class vtterminal(uio.IOBase):
     def get_screen_size(self):
         return [self.SC_H,self.SC_W]
         
-
