@@ -64,11 +64,11 @@ def bit_set(value, bitpos, flag):
 
 class vtterminal(uio.IOBase):
 
-    def __init__(self,framebuf,inputIO,ch_w=6,ch_h=8,sc_w = 53,sc_h=40):
+    def __init__(self,fb,inputIO,ch_w=6,ch_h=8,sc_w = 53,sc_h=40):
         self.keyBuf = bytearray(30)
         self.outputBuff = deque((),30)
         self.timer = Timer()
-        self.framebuf = framebuf
+        self.fb = fb
         self.inputIO = inputIO
         self.CH_W = ch_w #char width
         self.CH_H = ch_h #char height
@@ -139,7 +139,7 @@ class vtterminal(uio.IOBase):
   
         self.setCursorToHome()
 
-        self.timer.init(period=250, mode=Timer.PERIODIC, callback=self.dispCursor)
+        #self.timer.init(period=250, mode=Timer.PERIODIC, callback=self.dispCursor)
 
 
     def sc_updateChar(self,x,y):
@@ -160,17 +160,17 @@ class vtterminal(uio.IOBase):
             fore,back = back,fore
         xx = x*self.CH_W
         yy = y*self.CH_H
-        self.framebuf.fill_rect(xx, yy, self.CH_W, self.CH_H, back)
-        self.framebuf.text(chr(c), xx, yy, fore)
+        self.fb.fill_rect(xx, yy, self.CH_W, self.CH_H, back)
+        self.fb.text(chr(c), xx, yy, fore)
         if bit_is_set(a,Bold):
-            self.framebuf.text(chr(c), xx+1, yy, fore)
+            self.fb.text(chr(c), xx+1, yy, fore)
         if bit_is_set(a,Underline):
-            self.framebuf.hline(xx, yy+self.CH_H-1, self.CH_W, fore)
+            self.fb.hline(xx, yy+self.CH_H-1, self.CH_W, fore)
     
     def drawCursor(self,x,y):
         xx = x*self.CH_W
         yy = y*self.CH_H
-        self.framebuf.fill_rect(xx, yy, self.CH_W, self.CH_H, clWhite)
+        self.fb.fill_rect(xx, yy, self.CH_W, self.CH_H, clWhite)
 
     def dispCursor(self,t):
         if self.escMode != NONE:
@@ -180,8 +180,10 @@ class vtterminal(uio.IOBase):
         self.isShowCursor = not self.isShowCursor #flip
         if self.isShowCursor and self.canShowCursor:
             self.drawCursor(self.XP, self.YP)
-            self.p_XP =self.XP
-            self.p_YP = self.YP
+        else:
+            self.sc_updateChar(self.XP,self.YP)
+        self.p_XP =self.XP
+        self.p_YP = self.YP
         
         
     def sc_updateLine(self,ln):
@@ -202,6 +204,7 @@ class vtterminal(uio.IOBase):
         self.mode = defaultMode
         self.mode_ex = defaultModeEx
 
+
     def scroll(self):
         if  bit_is_set(self.mode,CrLf):
             self.XP= 0
@@ -209,7 +212,7 @@ class vtterminal(uio.IOBase):
         self.YP +=1
         if self.YP>self.M_BOTTOM:
             self.YP=self.M_BOTTOM
-            n=self.SCSIZE -self.SC_W-((self.M_TOP+self.MAX_SC_Y-self.M_BOTTOM)*self.SC_W)
+            n=self.SCSIZE -self.SC_W-((self.MAX_SC_Y+self.M_TOP-self.M_BOTTOM)*self.SC_W)
             idx = self.SC_W*self.M_BOTTOM
             idx3 = self.M_TOP*self.SC_W
             self.screen[idx3:idx3+n]=self.screen[idx3+self.SC_W:idx3+self.SC_W+n]
@@ -219,8 +222,18 @@ class vtterminal(uio.IOBase):
             self.screen[idx : idx + self.SC_W] = b'\x00' * self.SC_W
             self.attrib[idx : idx + self.SC_W] = bytes([defaultAttr] * self.SC_W)
             self.colors[idx : idx + self.SC_W] = bytes([defaultColor] * self.SC_W)
-            for y in range(self.M_TOP,self.M_BOTTOM+1):
-                self.sc_updateLine(y)
+            self.fb.scroll(0, -self.CH_H)
+            
+            #buf = self.fb.buf
+            #width = self.fb.width
+            #target = (self.M_TOP*width*self.CH_H)>>1
+            #source = ((self.M_TOP + 1) * width * self.CH_H) >> 1
+            #n=((self.M_BOTTOM-self.M_TOP)*width*self.CH_H)>>1
+            #buf[target:target+n] = buf[source:source+n]
+            self.sc_updateLine(self.M_BOTTOM)
+            
+            #for y in range(self.M_TOP,self.M_BOTTOM+1):
+            #    self.sc_updateLine(y)
             
             
 
@@ -423,26 +436,30 @@ class vtterminal(uio.IOBase):
 
     def resetToInitialState(self):
         color = defaultColor>>4
-        self.framebuf.fill(color)
+        self.fb.fill(color)
         self.initCursorAndAttribute()
         self.eraseInDisplay(2)
 
     def cursorUp(self,v):
+        self.sc_updateChar(self.XP, self.YP) 
         self.YP -=v
         if self.YP <=self.M_TOP:
             self.YP = self.M_TOP
 
     def cursorDown(self,v):
+        self.sc_updateChar(self.XP, self.YP) 
         self.YP +=v
         if self.YP >=self.M_BOTTOM:
             self.YP=self.M_BOTTOM
     
     def cursorForward(self,v):
+        self.sc_updateChar(self.XP, self.YP) 
         self.XP +=v
         if self.XP >=self.SC_W:
             self.XP = self.MAX_SC_X
     
     def cursorBackward(self,v):
+        self.sc_updateChar(self.XP, self.YP) 
         self.XP -=v
         if self.XP <=0:
             self.XP = 0
