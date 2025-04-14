@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
+
 #include "py/runtime.h"
 
 #include "py/mphal.h"
@@ -319,11 +321,12 @@ static void clearParams(uint8_t m) {
 }
 
 
-STATIC mp_obj_t vt_printChar(char c) {
+STATIC mp_obj_t vt_printChar(mp_obj_t value_obj) {
+    int c = mp_obj_get_int(value_obj);
     // [ESC] キー
     if (c == 0x1b) {
       escMode = ES;   // エスケープシーケンス開始
-      return;
+      return mp_const_none;
     }
     // エスケープシーケンス
     if (escMode == ES) {
@@ -395,7 +398,7 @@ STATIC mp_obj_t vt_printChar(char c) {
           clearParams(NONE);
           break;
       }
-      return;
+      return mp_const_none;
     }
   
     // "[" Control Sequence Introducer (CSI) シーケンス
@@ -405,7 +408,7 @@ STATIC mp_obj_t vt_printChar(char c) {
     if (escMode == CSI) {
       escMode = CSI2;
       isDECPrivateMode = (c == '?');
-      if (isDECPrivateMode) return;
+      if (isDECPrivateMode) return mp_const_none;
     }
   
     if (escMode == CSI2) {
@@ -530,11 +533,8 @@ STATIC mp_obj_t vt_printChar(char c) {
         }
         clearParams(NONE);
       }
-      return;
-    }
-  
-    // "#" Line Size Command  シーケンス
-    if (escMode == LSC) {
+      return mp_const_none;
+    }else if (escMode == LSC) {
       switch (c) {
         case '3':
           // DECDHL (Double Height Line): カーソル行を倍高、倍幅、トップハーフへ変更
@@ -562,35 +562,29 @@ STATIC mp_obj_t vt_printChar(char c) {
           break;
       }
       clearParams(NONE);
-      return;
-    }
-  
-    // "(" G0 セットシーケンス
-    if (escMode == G0S) {
+      return mp_const_none;
+    }else if (escMode == G0S) {
       // SCS (Select Character Set): G0 文字コードの設定
       setG0charset(c);
       clearParams(NONE);
-      return;
-    }
-  
-    // ")" G1 セットシーケンス
-    if (escMode == G1S) {
+      return mp_const_none;
+    }else if(escMode == G1S) {
       // SCS (Select Character Set): G1 文字コードの設定
       setG1charset(c);
       clearParams(NONE);
-      return;
+      return mp_const_none;
     }
   
-    // 改行 (LF / VT / FF)
+
     if ((c == 0x0a) || (c == 0x0b) || (c == 0x0c)) {
       scroll();
-      return;
+      return mp_const_none;
     }
   
     // 復帰 (CR)
     if (c == 0x0d) {
       XP = 0;
-      return;
+      return mp_const_none;
     }
   
     // バックスペース (BS)
@@ -601,7 +595,7 @@ STATIC mp_obj_t vt_printChar(char c) {
       attrib[idx] = 0;
       colors[idx] = cColor.value;
       sc_updateChar(XP, YP);
-      return;
+      return mp_const_none;
     }
   
     // タブ (TAB)
@@ -614,7 +608,7 @@ STATIC mp_obj_t vt_printChar(char c) {
         }
       }
       XP = (idx == -1) ? MAX_SC_X : idx;
-      return;
+      return mp_const_none;
     }
   
     // 通常文字
@@ -626,17 +620,25 @@ STATIC mp_obj_t vt_printChar(char c) {
       sc_updateChar(XP, YP);
     }
   
-    // X 位置 + 1
-    XP ++;
-  
+ 
     // 折り返し行
-    if (XP >= SC_W) {
-      if (mode_ex.Flgs.WrapLine)
-        scroll();
-      else
-        XP = MAX_SC_X;
+    if (XP+1>=SC_W){
+        if (mode_ex.Flgs.WrapLine){
+            XP=0;
+            scroll();
+        }
+            
+        else{
+            XP = MAX_SC_X;
+        }
+            
+    }else{
+        XP++;
     }
-  }
+
+    
+    return mp_const_none;
+}
 
 static MP_DEFINE_CONST_FUN_OBJ_1(vt_printChar_obj, vt_printChar);  
 
@@ -1141,9 +1143,21 @@ static void selectGraphicRendition(int16_t *vals, int16_t nVals) {
         case 5:
           // RGB - B
           // RGB (8 色のインデックスカラー中で最も近い色が使われる)
-          r = map(vals[i - 2], 0, 255, 0, 1);
-          g = map(vals[i - 1], 0, 255, 0, 1);
-          b = map(vals[i - 0], 0, 255, 0, 1);
+          if vals[i-2]>128{
+            r = 1;
+          }else{
+            r=0;
+        }
+        if vals[i-1]>128{
+            g = 1;
+          }else{
+            g=0;
+        }
+        if vals[i-0]>128{
+            b = 1;
+          }else{
+            b=0;
+        }
           cIdx = (b << 2) | (g << 1) | r;
           if (isFore)
             cColor.Color.Foreground = cIdx;
