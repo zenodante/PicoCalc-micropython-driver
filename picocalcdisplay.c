@@ -128,15 +128,15 @@ void core1_main() {
 
 
 void setpixelRGB565(int32_t x, int32_t y,uint16_t color){
-  ((uint16_t *)frameBuff)[x + DISPLAY_HEIGHT*y]= color;
+  ((uint16_t *)frameBuff)[x + DISPLAY_WIDTH*y]= color;
 }
 
 void setpixelLUT8(int32_t x, int32_t y,uint16_t color){
-  ((uint8_t *)frameBuff)[x + DISPLAY_HEIGHT*y]= (uint8_t)color;
+  ((uint8_t *)frameBuff)[x + DISPLAY_WIDTH*y]= (uint8_t)color;
 }
 
 void setpixelLUT4(int32_t x, int32_t y,uint16_t color){
-  uint8_t *pixel = &((uint8_t *)frameBuff)[(x + (DISPLAY_HEIGHT*y))>>1];
+  uint8_t *pixel = &((uint8_t *)frameBuff)[(x + (DISPLAY_WIDTH*y))>>1];
 
   if (x&0x01) {
     *pixel = ((uint8_t)color & 0x0f) | (*pixel & 0xf0);
@@ -146,7 +146,7 @@ void setpixelLUT4(int32_t x, int32_t y,uint16_t color){
 }
 
 void setpixelLUT2(int32_t x, int32_t y,uint16_t color){
-  uint8_t *pixel = &((uint8_t *)frameBuff)[(x + (DISPLAY_HEIGHT*y))>>2];
+  uint8_t *pixel = &((uint8_t *)frameBuff)[(x + (DISPLAY_WIDTH*y))>>2];
   uint8_t shift = (x & 0x3) << 1;
   uint8_t mask = 0x3 << shift;
   color = ((uint8_t)color & 0x3) << shift;
@@ -154,12 +154,12 @@ void setpixelLUT2(int32_t x, int32_t y,uint16_t color){
 }
 
 void setpixelLUT1(int32_t x, int32_t y,uint16_t color){
-  size_t index = (x + y * DISPLAY_HEIGHT) >> 3;
+  size_t index = (x + y * DISPLAY_WIDTH) >> 3;
   unsigned int offset =  x & 0x07;
   ((uint8_t *)frameBuff)[index] = (((uint8_t *)frameBuff)[index] & ~(0x01 << offset)) | ((color != 0) << offset);
 }
 
-static mp_obj_t init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
+static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     mp_buffer_info_t buf_info;
     mp_get_buffer_raise(fb_obj, &buf_info, MP_BUFFER_READ);
     frameBuff=(uint8_t *)buf_info.buf;
@@ -258,7 +258,7 @@ static mp_obj_t init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
 
     return mp_const_true;
 }
-static MP_DEFINE_CONST_FUN_OBJ_3(init_obj, init);
+static MP_DEFINE_CONST_FUN_OBJ_3(pd_init_obj, pd_init);
 
 
 static mp_obj_t drawTxt6x8(mp_uint_t n_args, const mp_obj_t *args){
@@ -351,13 +351,13 @@ static void command(uint8_t com, size_t len, const char *data) {
 
 
 
-static mp_obj_t update(){
+static mp_obj_t pd_update(){
     if (autoUpdate==false){
       pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
     }
     return mp_const_true;
 }
-static MP_DEFINE_CONST_FUN_OBJ_0(update_obj, update);
+static MP_DEFINE_CONST_FUN_OBJ_0(pd_update_obj, pd_update);
 
 
 void RGB565Update(uint8_t *frameBuff,uint32_t length,const uint16_t *LUT) {
@@ -734,9 +734,9 @@ void LUT1Update(uint8_t *frameBuff, uint32_t length,  const uint16_t *LUT){
 // optimized to word-sized integers by the build system (interned strings).
 static const mp_rom_map_elem_t picocalcdisplay_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_picocalcdisplay) },
-    { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&init_obj) },
+    { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&pd_init_obj) },
     { MP_ROM_QSTR(MP_QSTR_setLUT), MP_ROM_PTR(&setLUT_obj) },
-    { MP_ROM_QSTR(MP_QSTR_update), MP_ROM_PTR(&update_obj) },
+    { MP_ROM_QSTR(MP_QSTR_update), MP_ROM_PTR(&pd_update_obj) },
     { MP_ROM_QSTR(MP_QSTR_startAutoUpdate), MP_ROM_PTR(&startAutoUpdate_obj) },
     { MP_ROM_QSTR(MP_QSTR_stopAutoUpdate), MP_ROM_PTR(&stopAutoUpdate_obj) },
     { MP_ROM_QSTR(MP_QSTR_drawTxt6x8), MP_ROM_PTR(&drawTxt6x8_obj) },
