@@ -22,7 +22,7 @@ else:
     from _io import StringIO
 from re import compile as re_compile
 import time
-import json
+import ujson as json
 
 KEY_NONE = const(0x00)
 KEY_UP = const(0x0B)
@@ -190,13 +190,13 @@ class Editor:
     syntax_style = {}
     def __init__(self, tab_size, undo_limit, io_device):
         json_path = "/lib/syntax.json"
-        if not os.path.exists(json_path):
-            json_path = "syntax.json"  # fallback for testing outside firmware
-        try:
+        if os.path.exists(json_path):
             with open(json_path) as f:
                 Editor.syntax_style = json.load(f)
-        except Exception:
-            Editor.syntax_style = {}
+        else:
+            from default_style import syntax_style
+            Editor.syntax_style = syntax_style
+            
         self.top_line = self.cur_line = self.row = self.vcol = self.col = self.margin = 0
         self.tab_size = tab_size
         self.changed = ""
