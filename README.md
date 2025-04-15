@@ -13,7 +13,9 @@ Folder structure
 |         |-rp2
 |           |-build               //create folder for build
 |           |-modules             //here put fbconsole.py and picocalc.py
-|-PicoCalc-micropython-driver     //folder for lcd c driver module
+|-PicoCalc-micropython-driver     //folder for driver module
+|      |-picocalcdisplay
+|      |-vtterminal
 |-Any other modules like ulab, etc. al
 ```
 
@@ -22,7 +24,7 @@ Build Micropython Normally, While including as user module
 cd micropython/ports/rp2
 git submodule update --init --recursive
 mkdir build && cd build
-cmake .. -DUSER_C_MODULES="Location/Of/PicoCalc-micropython-driver/micropython.cmake" -DMICROPY_BOARD=[TARGET BOARD]
+cmake .. -DUSER_C_MODULES="Location/Of/PicoCalc-micropython-driver/picocalcdisplay/micropython.cmake;Location/Of/PicoCalc-micropython-driver/vtterminal/micropython.cmake" -DMICROPY_BOARD=[TARGET BOARD]
 ```
 Target Boards Can Be:
 * RPI_PICO
@@ -47,7 +49,7 @@ Now using core1 for framebuff update to screen. Much faster REPL display.
 N/A
 
 ## TODO
-Code Editor...
+Code Editor... Working on terminal emulator. Modified from:https://github.com/ht-deko/vt100_stm32
 
 ## CREDITS
 FBconsole is a modified version of https://github.com/boochow/FBConsole
