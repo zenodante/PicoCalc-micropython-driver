@@ -2,6 +2,7 @@ from collections import deque
 import uio
 import vtterminal
 from micropython import const
+import time
 
 sc_char_width =  const(53)
 sc_char_height =  const(40)
@@ -9,12 +10,21 @@ sc_char_height =  const(40)
 class vt(uio.IOBase):
     
 
-    def __init__(self,framebuf,keyboard):
+    def __init__(self,framebuf,keyboard,screencaptureKey=0x15,captureFolder="/"): #ctrl+U for screen capture
+        self.captureFolder = captureFolder
+        self.framebuf = framebuf
         self.keyboardInput = bytearray(30)
         self.outputBuffer = deque((), 30)
-        vtterminal.init(framebuf)
+        vtterminal.init(self.framebuf)
         self.keyboard = keyboard
+        self.screencaptureKey = screencaptureKey
     
+    def screencapture(self):
+        filename = self.captureFolder+"screen_%d.raw" % time.ticks_ms()
+        with open(filename, "wb") as f:
+            f.write(self.framebuf.buf)
+
+
     def wr(self,input):
         for c in input:
             if ord(c) == 0x07:
@@ -41,7 +51,9 @@ class vt(uio.IOBase):
                     raise ValueError("Non-ASCII character in vtterminal.read()")
 
             n = self.keyboard.readinto(self.keyboardInput)
-            if n:
+            if n:          
+                if self.screencaptureKey in self.keyboardInput[:n]:
+                    self.screencapture()
                 self.outputBuffer.extend(self.keyboardInput[:n])
 
         return chr(self.outputBuffer.popleft())
