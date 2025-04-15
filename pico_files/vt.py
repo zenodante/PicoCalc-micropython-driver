@@ -20,7 +20,7 @@ class vt(uio.IOBase):
         self.screencaptureKey = screencaptureKey
     
     def screencapture(self):
-        filename = self.captureFolder+"screen_%d.raw" % time.ticks_ms()
+        filename = "{}/screen_{}.raw".format(self.captureFolder, time.ticks_ms())
         with open(filename, "wb") as f:
             f.write(self.framebuf.buf)
 
