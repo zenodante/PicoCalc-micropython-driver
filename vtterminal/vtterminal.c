@@ -232,9 +232,14 @@ static void sc_updateChar(uint16_t x, uint16_t y) {
     uint16_t yy = y * CH_H;
     fill_rect_4bpp(fb, xx, yy, CH_W, CH_H, back);
     drawTxt6x8(fb,c,xx,yy, fore);
+    if (a.Bits.Bold){
+        drawTxt6x8(fb,c,xx+1,yy, fore);
+    }
+        
+}
 
     
-  }
+  
 
 static  void drawCursor(uint16_t x, uint16_t y) {
     uint16_t xx = x * CH_W;
@@ -1376,7 +1381,7 @@ static void drawTxt6x8(uint8_t *fb,uint8_t c,int x0,int y0, uint8_t color){
         uint8_t line_data = *chr_data++; 
         for (;x<x0+CH_W-1;x++){
             if ((line_data&0x80)&&(0 <= x && x < SC_PIXEL_WIDTH)) { // only draw if pixel set
-            setpixel(fb,x, y,color);
+                setpixel(fb,x, y,color);
             }
           line_data <<= 1;
         }
