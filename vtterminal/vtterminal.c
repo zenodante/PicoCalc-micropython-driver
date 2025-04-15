@@ -114,7 +114,7 @@ const uint8_t *currentTextTable;
 #define G1S  6
 
 static const uint8_t defaultMode = 0b00001000;
-static const uint16_t defaultModeEx = 0b0000001001000000;
+static const uint16_t defaultModeEx = 0b0000000001000000;
 static const ATTR defaultAttr = {0b00000000};
 static const COLOR defaultColor = {(clBlack << 4) | clWhite}; // back, fore
 uint8_t escMode = NONE;         // エスケープシーケンスモード
@@ -614,11 +614,19 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
           attrib[i] = attrib[i - 1];
           colors[i] = colors[i - 1];
         }
+        screen[idx] = c;
+        attrib[idx] = cAttr.value;
+        colors[idx] = cColor.value;
+        for (int16_t i = XP; i < SC_W; i++) {
+          sc_updateChar(i, YP);
+        }
+      }else{
+        screen[idx] = c;
+        attrib[idx] = cAttr.value;
+        colors[idx] = cColor.value;
+        sc_updateChar(XP, YP);
       }
-      screen[idx] = c;
-      attrib[idx] = cAttr.value;
-      colors[idx] = cColor.value;
-      sc_updateChar(XP, YP);
+      
     }
   
  
@@ -1399,7 +1407,6 @@ static mp_obj_t vtterminal_init(mp_obj_t fb_obj){
 
     currentTextTable=font6x8tt_2;
     resetToInitialState();
-    mode_ex.Flgs.InsertMode = 1;
     setCursorToHome();
 
     //init the timer and callback
