@@ -29,6 +29,13 @@ def human_readable_size(size):
     return f"{size:.2f} PB"
 
 
+def prepare_for_launch(keep_vars=( "gc", "__name__")):
+    for k in list(globals()):
+        if k not in keep_vars:
+            del globals()[k]
+    gc.collect()
+
+
 def run(filename):
     """
     Simple run utility.
