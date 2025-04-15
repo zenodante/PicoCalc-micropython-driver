@@ -1,0 +1,15 @@
+{
+    "def": "\u001b[34m",
+    "class": "\u001b[35m",
+    "if": "\u001b[36m",
+    "elif": "\u001b[36m",
+    "else": "\u001b[36m",
+    "while": "\u001b[33m",
+    "True": "\u001b[32m",
+    "False": "\u001b[31m",
+    "import": "\u001b[34m",
+    "#": "\u001b[32m",
+    "string": "\u001b[33m",
+    "multiline": "\u001b[32m",
+    "bracket_match": "\u001b[41;37m"  
+  }
