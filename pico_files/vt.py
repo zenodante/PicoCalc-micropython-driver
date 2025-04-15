@@ -13,7 +13,7 @@ class vt(uio.IOBase):
         self.keyboardInput = bytearray(30)
         self.outputBuffer = deque((), 30)
         vtterminal.init(framebuf)
-        self._keyboard = keyboard
+        self.keyboard = keyboard
     
     def wr(self,input):
         for c in input:
@@ -46,7 +46,7 @@ class vt(uio.IOBase):
             self.outputBuffer.extend(self.keyboardInput[:n])  
 
         if self.outputBuffer:
-            return self.outputBuffer.popleft()
+            return chr(self.outputBuffer.popleft())
         else:
             return None
         

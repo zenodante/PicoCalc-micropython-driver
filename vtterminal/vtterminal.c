@@ -88,7 +88,8 @@ typedef union {
     unsigned int WrapLine  : 1;     // 7 DECAWM (Autowrap Mode)
     unsigned int Reserved8 : 1;     // 8 DECARM (Auto Repeat Mode)
     unsigned int Reserved9 : 1;     // 9 DECINLM (Interlace Mode)
-    unsigned int Reverse : 7;    
+    unsigned int InsertMode:1;     // 10 DECIM (Insert Mode)
+    unsigned int Reverse : 6;    
 }TMODE_EX ;
   
 typedef union {
@@ -113,7 +114,7 @@ const uint8_t *currentTextTable;
 #define G1S  6
 
 static const uint8_t defaultMode = 0b00001000;
-static const uint16_t defaultModeEx = 0b0000000001000000;
+static const uint16_t defaultModeEx = 0b0000001001000000;
 static const ATTR defaultAttr = {0b00000000};
 static const COLOR defaultColor = {(clBlack << 4) | clWhite}; // back, fore
 uint8_t escMode = NONE;         // エスケープシーケンスモード
@@ -606,6 +607,14 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
     // 通常文字
     if (XP < SC_W) {
       uint16_t idx = YP * SC_W + XP;
+      if (mode_ex.Flgs.InsertMode){
+        // 挿入モード
+        for (int16_t i = (YP+1) * SC_W - 1; i > idx; i--) {
+          screen[i] = screen[i - 1];
+          attrib[i] = attrib[i - 1];
+          colors[i] = colors[i - 1];
+        }
+      }
       screen[idx] = c;
       attrib[idx] = cAttr.value;
       colors[idx] = cColor.value;
@@ -947,6 +956,10 @@ static void setMode(int16_t *vals, int16_t nVals) {
           // LNM (Line Feed / New Line Mode)
           lineMode(true);
           break;
+        case 4:
+          // IRM (Insert Mode): 挿入モード
+          mode_ex.Flgs.InsertMode = 1;
+          break;
         default:
           break;
       }
@@ -965,6 +978,11 @@ static void decSetMode(int16_t *vals, int16_t nVals) {
           // DECAWM (Auto Wrap Mode): 自動折り返しモード
           autoWrapMode(true);
           break;
+
+        case 25:
+          // DECTCEM (Cursor Mode): カーソル表示モード
+          canShowCursor = true;
+          break;
         default:
           break;
       }
@@ -978,6 +996,11 @@ static void resetMode(int16_t *vals, int16_t nVals) {
         case 20:
           // LNM (Line Feed / New Line Mode)
           lineMode(false);
+          break;
+
+        case 4:
+          // IRM (Insert Mode): 挿入モード
+          mode_ex.Flgs.InsertMode = 0;
           break;
         default:
           break;
@@ -996,6 +1019,10 @@ static void decResetMode(int16_t *vals, int16_t nVals) {
         case 7:
           // DECAWM (Auto Wrap Mode): 自動折り返しモード
           autoWrapMode(false);
+          break;
+        case 25:
+          // DECTCEM (Cursor Mode): カーソル表示モード
+          canShowCursor = false;
           break;
         default:
           break;
@@ -1372,6 +1399,7 @@ static mp_obj_t vtterminal_init(mp_obj_t fb_obj){
 
     currentTextTable=font6x8tt_2;
     resetToInitialState();
+    mode_ex.Flgs.InsertMode = 1;
     setCursorToHome();
 
     //init the timer and callback
