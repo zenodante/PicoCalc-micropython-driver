@@ -731,7 +731,37 @@ static void horizontalTabulationSet(void) {
   // RI (Reverse Index): カーソルを一行上へ移動
   // (DECSTBM の影響を受ける)
 static void reverseIndex(int16_t v) {
-    cursorUp(v);
+    //cursorUp(v);
+    if ((YP - v) < M_TOP) {
+        // Scroll down the scroll region by v lines
+        int lines_to_scroll = v;
+        if (lines_to_scroll > (M_BOTTOM - M_TOP + 1))
+            lines_to_scroll = (M_BOTTOM - M_TOP + 1);
+
+        int lines_to_move = (M_BOTTOM - M_TOP + 1) - lines_to_scroll;
+
+        if (lines_to_move > 0) {
+            int n = SC_W * lines_to_move;
+            int dst = SC_W * (M_TOP + lines_to_scroll);
+            int src = SC_W * M_TOP;
+            memmove(&screen[dst], &screen[src], n);
+            memmove(&attrib[dst], &attrib[src], n);
+            memmove(&colors[dst], &colors[src], n);
+        }
+
+        // Fill new top lines
+        int top_idx = SC_W * M_TOP;
+        int fill_len = SC_W * lines_to_scroll;
+        memset(&screen[top_idx], 0x00, fill_len);
+        memset(&attrib[top_idx], defaultAttr.value, fill_len);
+        memset(&colors[top_idx], defaultColor.value, fill_len);
+
+        YP = M_TOP;
+        for (uint8_t y = M_TOP; y <= M_BOTTOM; y++)
+            sc_updateLine(y);
+    } else {
+        YP -= v;
+    }
   }
   
   // DECID (Identify): 端末IDシーケンスを送信
