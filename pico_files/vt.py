@@ -3,6 +3,7 @@ import uio
 import vtterminal
 from micropython import const
 import time
+import os
 
 sc_char_width =  const(53)
 sc_char_height =  const(40)
@@ -10,9 +11,15 @@ sc_char_height =  const(40)
 class vt(uio.IOBase):
     
 
-    def __init__(self,framebuf,keyboard,screencaptureKey=0x15,captureFolder="/"): #ctrl+U for screen capture
+    def __init__(self,framebuf,keyboard,screencaptureKey=0x15,sd=None,captureFolder="/"): #ctrl+U for screen capture
+        if not captureFolder.startswith("/"):
+            captureFolder = "/"+captureFolder
+        if captureFolder.endswith("/"):
+            captureFolder = captureFolder[:-1]
         self.captureFolder = captureFolder
+
         self.framebuf = framebuf
+        self.sd = sd
         self.keyboardInput = bytearray(30)
         self.outputBuffer = deque((), 30)
         vtterminal.init(self.framebuf)
@@ -20,7 +27,17 @@ class vt(uio.IOBase):
         self.screencaptureKey = screencaptureKey
     
     def screencapture(self):
-        filename = "{}/screen_{}.raw".format(self.captureFolder, time.ticks_ms())
+        if self.sd:
+            folder = '/sd'+self.captureFolder
+        else:
+            folder = self.captureFolder
+
+        if not folder in os.listdir(folder.rsplit("/", 1)[0]):
+            try:
+                os.mkdir(folder)
+            except OSError:
+                return
+        filename = "{}/screen_{}.raw".format(folder, time.ticks_ms())
         with open(filename, "wb") as f:
             f.write(self.framebuf.buf)
 
