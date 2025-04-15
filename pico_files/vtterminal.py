@@ -801,8 +801,6 @@ class vtterminal(uio.IOBase):
         else:
             return None
 
-    def rd_raw(self): 
-        return self.rd()
       
     def readinto(self, buf):
         self.keyBuf[:] = b'\x00' * len(self.keyBuf)
