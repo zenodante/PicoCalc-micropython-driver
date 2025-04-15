@@ -6,7 +6,7 @@
 #define FONT6X8TT_H
 
 
-const uint8_t font6x8tt[] = {
+const uint8_t font6x8tt_2[] = {
   // 0x20 (   )
   0b00000000,
   0b00000000,

@@ -5,13 +5,13 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
-
+#include <stdio.h>
 #include "py/runtime.h"
 
 #include "py/mphal.h"
 #include "py/gc.h"
 #include "py/misc.h"
-#include "font6x8e500.h"
+#include "font6x8e500_2.h"
 
 #include "pico/stdlib.h"
 #include "hardware/timer.h"
@@ -118,7 +118,7 @@ static const ATTR defaultAttr = {0b00000000};
 static const COLOR defaultColor = {(clBlack << 4) | clWhite}; // back, fore
 uint8_t escMode = NONE;         // エスケープシーケンスモード
 bool isShowCursor = false;     // カーソル表示中か？
-bool canShowCursor = false;    // カーソル表示可能か？
+bool canShowCursor = true;    // カーソル表示可能か？
 bool hasParam = false;         // <ESC> [ がパラメータを持っているか？
 bool isDECPrivateMode = false; // DEC Private Mode (<ESC> [ ?)
 MODE mode;
@@ -159,19 +159,11 @@ static void setCursorToHome(void);
 static void initCursorAndAttribute(void);
 static void scroll(void);
 static void clearParams(uint8_t m);
-static void printString(const char *str);
 static void saveCursor(void);
 static void restoreCursor(void);
 static void keypadApplicationMode(void);
 static void keypadNumericMode(void);
-static void index(int16_t v) ;
-static void index(int16_t v);
-static void nextLine(void) ;
-static void horizontalTabulationSet(void);
-static void reverseIndex(int16_t v);
-static void identify(void);
-static void resetToInitialState(void);
-static void index(int16_t v);
+static void vindex(int16_t v);
 static void nextLine(void) ;
 static void horizontalTabulationSet(void);
 static void reverseIndex(int16_t v);
@@ -208,7 +200,8 @@ static void screenAlignmentDisplay(void);
 static void setG0charset(char c);
 static void setG1charset(char c);
 static void unknownSequence(uint8_t m, char c) ;
-
+static void cursorForward(int16_t v);
+static void cursorBackward(int16_t v);
 
 static void setpixel(uint8_t *fb,int32_t x, int32_t y,uint8_t color){
     uint8_t *pixel = &((uint8_t *)fb)[(x + (SC_PIXEL_WIDTH*y))>>1];
@@ -222,7 +215,6 @@ static void setpixel(uint8_t *fb,int32_t x, int32_t y,uint8_t color){
 static void sc_updateChar(uint16_t x, uint16_t y) {
     uint16_t idx = SC_W * y + x;
     uint8_t c    = screen[idx];        
-    uint8_t* ptr = &fontTop[c * CH_H]; 
     ATTR a;
     COLOR l;
     a.value = attrib[idx];             
@@ -251,7 +243,7 @@ static  void drawCursor(uint16_t x, uint16_t y) {
 
 bool dispCursor(repeating_timer_t *rt) {
     if (escMode != NONE)
-      return;
+      return true;
     sc_updateChar(p_XP, p_YP);  
     if  (canShowCursor){
         isShowCursor = !isShowCursor;
@@ -321,7 +313,7 @@ static void clearParams(uint8_t m) {
 }
 
 
-STATIC mp_obj_t vt_printChar(mp_obj_t value_obj) {
+static mp_obj_t vt_printChar(mp_obj_t value_obj) {
     int c = mp_obj_get_int(value_obj);
     // [ESC] キー
     if (c == 0x1b) {
@@ -368,7 +360,7 @@ STATIC mp_obj_t vt_printChar(mp_obj_t value_obj) {
               break;
             case 'D':
               // IND (Index): カーソルを一行下へ移動
-              index(1);
+              vindex(1);
               break;
             case 'E':
               // NEL (Next Line): 改行、カーソルを次行の最初へ移動
@@ -643,9 +635,7 @@ STATIC mp_obj_t vt_printChar(mp_obj_t value_obj) {
 static MP_DEFINE_CONST_FUN_OBJ_1(vt_printChar_obj, vt_printChar);  
 
 
-static void printString(const char *str) {
-    while (*str) vt_printChar(*str++);
-}
+
 
 
 static void saveCursor(void) {
@@ -678,7 +668,7 @@ static void keypadNumericMode(void) {
 
   // IND (Index): カーソルを一行下へ移動
   // (DECSTBM の影響を受ける)
-static void index(int16_t v) {
+static void vindex(int16_t v) {
     cursorDown(v);
 }
 
@@ -901,10 +891,10 @@ static  void deleteLine(uint8_t v) {
   // CPR (Cursor Position Report): カーソル位置のレポート
 static void cursorPositionReport(uint16_t y, uint16_t x) {
     char temp[30];
-    len = sprintf(temp, "\x1b[%d;%dR", SC_H, SC_W);
+    int32_t len = sprintf(temp, "\x1b[%d;%dR", SC_H, SC_W);
     
     if (outputLen + len <= sizeof(outputBuf)) {
-        memcpy(&(outputBuff[outputLen]), temp, len);
+        memcpy(&(outputBuf[outputLen]), temp, len);
         outputLen += len;
     }
 }
@@ -914,7 +904,7 @@ static void cursorPositionReport(uint16_t y, uint16_t x) {
 static void deviceAttributes(uint8_t m) {
 
     if (outputLen + 7 <= sizeof(outputBuf)) {
-        memcpy(&(outputBuff[outputLen]), "\e[?1;0c", 7);
+        memcpy(&(outputBuf[outputLen]), "\e[?1;0c", 7);
         outputLen += 7;
       }
   }
@@ -1143,17 +1133,17 @@ static void selectGraphicRendition(int16_t *vals, int16_t nVals) {
         case 5:
           // RGB - B
           // RGB (8 色のインデックスカラー中で最も近い色が使われる)
-          if vals[i-2]>128{
+          if (vals[i-2]>128){
             r = 1;
           }else{
             r=0;
         }
-        if vals[i-1]>128{
+        if (vals[i-1]>128){
             g = 1;
           }else{
             g=0;
         }
-        if vals[i-0]>128{
+        if (vals[i-0]>128){
             b = 1;
           }else{
             b=0;
@@ -1177,7 +1167,7 @@ static void deviceStatusReport(uint8_t m) {
     switch (m) {
       case 5:
         if (outputLen + 4 <= sizeof(outputBuf)) {
-          memcpy(&(outputBuff[outputLen]), "\e[0n", 4);
+          memcpy(&(outputBuf[outputLen]), "\e[0n", 4);
           outputLen += 4;
         }
 
@@ -1380,7 +1370,7 @@ static mp_obj_t vtterminal_init(mp_obj_t fb_obj){
     mp_get_buffer_raise(fb_obj, &buf_info, MP_BUFFER_READ);
     fb=(uint8_t *)buf_info.buf;
 
-    currentTextTable=font6x8tt;
+    currentTextTable=font6x8tt_2;
     resetToInitialState();
     setCursorToHome();
 
@@ -1393,29 +1383,29 @@ static MP_DEFINE_CONST_FUN_OBJ_1(vt_init_obj, vtterminal_init);
 
 
 
-STATIC mp_obj_t vt_read(void){
+static mp_obj_t vt_read(void){
     
     mp_obj_t result = mp_obj_new_str(outputBuf, outputLen);
     outputLen = 0;
     return result;
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_0(vt_read_obj, vt_read);
+static MP_DEFINE_CONST_FUN_OBJ_0(vt_read_obj, vt_read);
 
 
 
 
-STATIC const mp_rom_map_elem_t vtterminal_globals_table[] = {
+static const mp_rom_map_elem_t vtterminal_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR___name__), MP_ROM_QSTR(MP_QSTR_vtterminal) },
     { MP_ROM_QSTR(MP_QSTR_init), MP_ROM_PTR(&vt_init_obj) },
     { MP_ROM_QSTR(MP_QSTR_read), MP_ROM_PTR(&vt_read_obj) },
-    { MP_ROM_QSTR(MP_QSTR_printchar), MP_ROM_PTR(&vt_printchar_obj)}
+    { MP_ROM_QSTR(MP_QSTR_printChar), MP_ROM_PTR(&vt_printChar_obj)}
 };
-STATIC MP_DEFINE_CONST_DICT(vtterminal_globals, vt_init_obj_globals_table);
+static MP_DEFINE_CONST_DICT(vtterminal_globals, vtterminal_globals_table);
 
 
-const mp_obj_module_t vtterminal_user_cmodule = {
+const mp_obj_module_t vtterminal_cmodule = {
     .base = { &mp_type_module },
-    .globals = (mp_obj_dict_t*)&vtterminal_obj_globals,
+    .globals = (mp_obj_dict_t*)&vtterminal_globals,
 };
 
 
