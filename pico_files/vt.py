@@ -30,25 +30,21 @@ class vt(uio.IOBase):
         return[sc_char_height,sc_char_width]
     
     def rd(self):
+        while not self.outputBuffer:
+            s = vtterminal.read()
+            if s:
+                try:
+                    self.outputBuffer.extend(ord(ch) for ch in s)
+                except TypeError:
+                    raise ValueError("vtterminal.read() must return str")
+                except ValueError:
+                    raise ValueError("Non-ASCII character in vtterminal.read()")
 
-        s = vtterminal.read()
-        if s:
-            try:
-                self.outputBuffer.extend(ord(ch) for ch in s)
-            except TypeError:
-                raise ValueError("vtterminal.read() must return str")
-            except ValueError:
-                raise ValueError("Non-ASCII character in vtterminal.read()")
+            n = self.keyboard.readinto(self.keyboardInput)
+            if n:
+                self.outputBuffer.extend(self.keyboardInput[:n])
 
-
-        n = self.keyboard.readinto(self.keyboardInput)
-        if n:
-            self.outputBuffer.extend(self.keyboardInput[:n])  
-
-        if self.outputBuffer:
-            return chr(self.outputBuffer.popleft())
-        else:
-            return ""
+        return chr(self.outputBuffer.popleft())
         
 
     def rd_raw(self):
