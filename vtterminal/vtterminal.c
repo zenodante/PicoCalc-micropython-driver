@@ -258,7 +258,7 @@ bool dispCursor(repeating_timer_t *rt) {
 }
 
 static void sc_updateLine(uint16_t ln) {
-    for (uint32_t i=0;i<CH_H;i++){
+    for (uint32_t i=0;i<SC_W;i++){
        sc_updateChar(i, ln);
     }
 }
