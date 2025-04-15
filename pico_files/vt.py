@@ -48,7 +48,7 @@ class vt(uio.IOBase):
         if self.outputBuffer:
             return chr(self.outputBuffer.popleft())
         else:
-            return None
+            return ""
         
 
     def rd_raw(self):
