@@ -149,7 +149,7 @@ bool dispCursor(repeating_timer_t *rt) ;
 
 
 
-static void scroll_framebuffer(uint8_t *fb,  int scroll_y1, int scroll_y2, int n, uint8_t bg_color);
+//static void scroll_framebuffer(uint8_t *fb,  int scroll_y1, int scroll_y2, int n, uint8_t bg_color);
 static void fill_rect_4bpp(uint8_t *fb,  int x, int y, int w, int h, uint8_t color);
 static void drawTxt6x8(uint8_t *fb,uint8_t c,int x0,int y0, uint8_t color);
 static void setpixel(uint8_t *fb,int32_t x, int32_t y,uint8_t color);
@@ -281,6 +281,30 @@ static void initCursorAndAttribute(void) {
 
 
 static void scroll(void) {
+  if (mode.Flgs.CrLf) XP = 0;
+  YP++;
+  if (YP > M_BOTTOM) {
+    uint16_t n = SCSIZE - SC_W - ((M_TOP + MAX_SC_Y - M_BOTTOM) * SC_W);
+    uint16_t idx = SC_W * M_BOTTOM;
+    uint16_t idx2;
+    uint16_t idx3 = M_TOP * SC_W;
+    memmove(&screen[idx3], &screen[idx3 + SC_W], n);
+    memmove(&attrib[idx3], &attrib[idx3 + SC_W], n);
+    memmove(&colors[idx3], &colors[idx3 + SC_W], n);
+    for (uint8_t x = 0; x < SC_W; x++) {
+      idx2 = idx + x;
+      screen[idx2] = 0;
+      attrib[idx2] = defaultAttr.value;
+      colors[idx2] = defaultColor.value;
+    }
+    
+    YP = M_BOTTOM;
+  }
+  for (uint8_t y = M_TOP; y <= M_BOTTOM; y++)
+      sc_updateLine(y);
+}
+/*
+static void scroll(void) {
     if (mode.Flgs.CrLf) XP = 0;
     if (YP+1 > M_BOTTOM) {
       YP = M_BOTTOM;  
@@ -302,8 +326,12 @@ static void scroll(void) {
     }else{
         YP++;
     }
+    for (uint8_t y = M_TOP; y <= M_BOTTOM; y++){
+      sc_updateLine(y);
+    }
+      
 }
-
+*/
 
 static void clearParams(uint8_t m) {
     escMode = m;
@@ -1328,7 +1356,7 @@ static void drawTxt6x8(uint8_t *fb,uint8_t c,int x0,int y0, uint8_t color){
 }
 
 
-
+/*
 static void scroll_framebuffer(uint8_t *fb, int scroll_y1, int scroll_y2, int n, uint8_t bg_color){
     int row_bytes = SC_PIXEL_WIDTH >> 1; 
     if (scroll_y1 < 0 || scroll_y2 >= SC_PIXEL_HEIGHT || n <= 0 || (scroll_y2 - scroll_y1 + 1) <= n)
@@ -1364,7 +1392,7 @@ static void scroll_framebuffer(uint8_t *fb, int scroll_y1, int scroll_y2, int n,
         }
     }
 }
-
+*/
 static void fill_rect_4bpp(uint8_t *fb,  int x, int y, int w, int h, uint8_t color){
 
     int row_bytes = SC_PIXEL_WIDTH >> 1;  
