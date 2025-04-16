@@ -11,7 +11,7 @@
 #include "py/mphal.h"
 #include "py/gc.h"
 #include "py/misc.h"
-#include "font6x8e500_2.h"
+#include "font6x8.h"
 
 #include "pico/stdlib.h"
 #include "hardware/timer.h"
@@ -63,7 +63,7 @@ typedef union {
   
 
 typedef struct {
-    unsigned int Reserved2   : 1;
+    unsigned int g0g1        : 1;
     unsigned int Reserved4   : 1;
     unsigned int Reserved12  : 1;
     unsigned int CrLf        : 1;
@@ -636,13 +636,22 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
       return mp_const_none;
     }
   
-    // 復帰 (CR)
+    //  (CR)
     if (c == 0x0d) {
-      XP = 0;
-      return mp_const_none;
+        XP = 0;
+        return mp_const_none;
     }
-  
-    // バックスペース (BS)
+    if (c=0x0e){//using g1
+        mode.Flgs.g0g1 = 1;
+        currentTextTable=G1TABLE;
+        return mp_const_none;
+    }
+    if (c=0x0f){//using g0
+        mode.Flgs.g0g1 = 0;
+        currentTextTable=G0TABLE;
+        return mp_const_none;
+    }
+    // (BS)
     if (c == 0x7f) {
       cursorBackward(1);
       uint16_t idx = YP * SC_W + XP;
@@ -652,11 +661,12 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
       sc_updateChar(XP, YP);
       return mp_const_none;
     }
+
     if (c == 0x08) {
       cursorBackward(1);
       return mp_const_none;
     }
-    // タブ (TAB)
+    // tab
     if (c == 0x09) {
       int16_t idx = -1;
       for (int16_t i = XP + 1; i < SC_W; i++) {
@@ -669,11 +679,11 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
       return mp_const_none;
     }
   
-    // 通常文字
+    // normal char
     if (XP < SC_W) {
       uint16_t idx = YP * SC_W + XP;
       if (mode_ex.Flgs.InsertMode){
-        // 挿入モード
+        // insert
         for (int16_t i = (YP+1) * SC_W - 1; i > idx; i--) {
           screen[i] = screen[i - 1];
           attrib[i] = attrib[i - 1];
@@ -695,7 +705,7 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
     }
   
  
-    // 折り返し行
+    // return
     if (XP+1>=SC_W){
         if (mode_ex.Flgs.WrapLine){
             XP=0;
@@ -1501,7 +1511,7 @@ static mp_obj_t vtterminal_init(mp_obj_t fb_obj){
     mp_get_buffer_raise(fb_obj, &buf_info, MP_BUFFER_READ);
     fb=(uint8_t *)buf_info.buf;
 
-    currentTextTable=font6x8tt_2;
+    currentTextTable=G0TABLE;
     resetToInitialState();
     setCursorToHome();
 

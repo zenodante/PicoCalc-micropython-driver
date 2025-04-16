@@ -19,5 +19,6 @@
 #define clCyan    6
 #define clWhite   7
 
-
+#define G0TABLE   CP437
+#define G1TABLE   font6x8G1
 #endif
