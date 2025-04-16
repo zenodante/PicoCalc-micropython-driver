@@ -22,7 +22,6 @@ else:
     from _io import StringIO
 from re import compile as re_compile
 import time
-import ujson as json
 
 KEY_NONE = const(0x00)
 KEY_UP = const(0x0B)
@@ -189,14 +188,9 @@ class Editor:
     max_places = 20
     syntax_style = {}
     def __init__(self, tab_size, undo_limit, io_device):
-        json_path = "/lib/syntax.json"
-        if os.path.exists(json_path):
-            with open(json_path) as f:
-                Editor.syntax_style = json.load(f)
-        else:
-            from default_style import syntax_style
-            Editor.syntax_style = syntax_style
-            
+
+        from default_style import syntax_style
+        Editor.syntax_style = syntax_style
         self.top_line = self.cur_line = self.row = self.vcol = self.col = self.margin = 0
         self.tab_size = tab_size
         self.changed = ""
@@ -218,65 +212,23 @@ class Editor:
             self.key_max = max(self.key_max, len(_))
     
     def highlight_line(self, line):
-        result = ""
-        i = 0
-        in_string = None
-        in_multiline = getattr(self, "in_multiline", False)
-        while i < len(line):
-            c = line[i]
+        result = []
+        parts = line.split(" ")
+        in_comment = False
+        for part in parts:
+            if in_comment:
 
-            # --- Multiline string detection ---
-            if not in_string and line[i:i+3] in ("'''", '"""'):
-                result += self.syntax_style.get("multiline", "") + line[i:i+3]
-                i += 3
-                in_multiline = not in_multiline
-                continue
-
-            if in_multiline:
-                result += line[i]
-                i += 1
-                continue
-
-            # --- Single-line comment ---
-            if not in_string and c == "#":
-                result += self.syntax_style.get("#", "") + line[i:] + "\x1b[0m"
-                break
-
-            # --- String start/end ---
-            if c in ('"', "'"):
-                if in_string is None:
-                    in_string = c
-                    result += self.syntax_style.get("string", "") + c
-                elif in_string == c:
-                    in_string = None
-                    result += c + "\x1b[0m"
-                else:
-                    result += c
-                i += 1
-                continue
-
-            if in_string:
-                result += c
-                i += 1
-                continue
-
-            # --- Word coloring ---
-            if c.isalpha() or c == "_":
-                start = i
-                while i < len(line) and (line[i].isalnum() or line[i] == "_"):
-                    i += 1
-                word = line[start:i]
-                color = self.syntax_style.get(word, "")
-                if color:
-                    result += color + word + "\x1b[0m"
-                else:
-                    result += word
+                result.append(self.syntax_style.get("#", "") + part + "\x1b[0m")
+            elif part.startswith("#"):
+                in_comment = True
+                result.append(self.syntax_style.get("#", "") + part + "\x1b[0m")
+            elif part in self.syntax_style:
+                result.append(self.syntax_style[part] + part + "\x1b[0m")
             else:
-                result += c
-                i += 1
-        self.in_multiline = in_multiline
-        return result
+                result.append(part)
 
+        return " ".join(result)
+    
     def goto(self, row, col):
         self.wr(Editor.TERMCMD[0].format(row=row + 1, col=col + 1))
     def clear_to_eol(self):
@@ -1201,12 +1153,12 @@ class Editor:
             self.content = [""]
         self.total_lines = len(self.content)
         os.chdir(self.work_dir)
-        self.redraw(self.message == "")
+        self.redraw(self.message == "") 
         while True:
-            self.display_window()
+            self.display_window() 
             key, char = self.get_input()
             self.message = ""
-            key = self.handle_edit_keys(key, char)
+            key = self.handle_edit_keys(key, char)           
             if key == KEY_QUIT:
                 if self.hash != self.hash_buffer():
                     res = self.line_edit("File changed! Quit (y/N/f)? ", "N")

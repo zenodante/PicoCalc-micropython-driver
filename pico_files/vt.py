@@ -43,6 +43,7 @@ class vt(uio.IOBase):
 
 
     def wr(self,input):
+        #print("WR:", repr(input))
         for c in input:
             if ord(c) == 0x07:
                 pass
@@ -69,8 +70,8 @@ class vt(uio.IOBase):
 
             n = self.keyboard.readinto(self.keyboardInput)
             if n:          
-                if self.screencaptureKey in self.keyboardInput[:n]:
-                    self.screencapture()
+                #if self.screencaptureKey in self.keyboardInput[:n]:
+                #    self.screencapture()
                 self.outputBuffer.extend(self.keyboardInput[:n])
 
         return chr(self.outputBuffer.popleft())

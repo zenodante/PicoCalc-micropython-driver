@@ -170,7 +170,7 @@ static void horizontalTabulationSet(void);
 static void reverseIndex(int16_t v);
 static void identify(void);
 static void resetToInitialState(void);
-static void cursorUp(int16_t v);
+//static void cursorUp(int16_t v);
 static void cursorDown(int16_t v);
 static void cursorPosition(uint8_t y, uint8_t x);
 static void refreshScreen(void);
@@ -283,8 +283,36 @@ static void initCursorAndAttribute(void) {
     mode.value = defaultMode;
     mode_ex.value = defaultModeEx;
 }
+static void scroll(void) {
+  if (mode.Flgs.CrLf) XP = 0;
+  YP++;
+
+  if (YP > M_BOTTOM) {
+      int lines_to_scroll = M_BOTTOM - M_TOP;
+
+      if (lines_to_scroll > 0) {
+          size_t copy_bytes = lines_to_scroll * SC_W;
+          int dst = M_TOP * SC_W;
+          int src = (M_TOP + 1) * SC_W;
+
+          memmove(&screen[dst], &screen[src], copy_bytes);
+          memmove(&attrib[dst], &attrib[src], copy_bytes);
+          memmove(&colors[dst], &colors[src], copy_bytes);
+      }
 
 
+      int bottom_idx = M_BOTTOM * SC_W;
+      memset(&screen[bottom_idx], 0, SC_W);
+      memset(&attrib[bottom_idx], defaultAttr.value, SC_W);
+      memset(&colors[bottom_idx], defaultColor.value, SC_W);
+
+      YP = M_BOTTOM;
+
+      for (uint8_t y = M_TOP; y <= M_BOTTOM; y++)
+          sc_updateLine(y);
+  }
+}
+/*
 static void scroll(void) {
   if (mode.Flgs.CrLf) XP = 0;
   YP++;
@@ -305,9 +333,10 @@ static void scroll(void) {
     
     YP = M_BOTTOM;
   }
-  for (uint8_t y = M_TOP; y <= M_BOTTOM; y++)
+  for (uint8_t y = 0; y <SC_H; y++)//for (uint8_t y = M_TOP; y <=M_BOTTOM; y++)
       sc_updateLine(y);
 }
+*/
 /*
 static void scroll(void) {
     if (mode.Flgs.CrLf) XP = 0;
@@ -787,6 +816,7 @@ static void resetToInitialState(void) {
 
 // CUU (Cursor Up): カーソルをPl行上へ移動
 // (DECSTBM の影響を受ける)
+/* 
 static void cursorUp(int16_t v) {
     if ((YP - v) <= M_TOP){
         YP = M_TOP;
@@ -794,7 +824,7 @@ static void cursorUp(int16_t v) {
         YP -= v;
     }
   }
-  
+*/  
   // CUD (Cursor Down): カーソルをPl行下へ移動
   // (DECSTBM の影響を受ける)
 static void cursorDown(int16_t v) {
@@ -914,7 +944,8 @@ static void eraseInLine(uint8_t m) {
       uint16_t n = elp - slp + 1;
       memset(&screen[slp], 0x00, n);
       memset(&attrib[slp], defaultAttr.value, n);
-      memset(&colors[slp], defaultColor.value, n);
+      memset(&colors[slp], cColor.value, n);
+      //memset(&colors[slp], defaultColor.value, n);
       sc_updateLine(YP);
     }
 }

@@ -117,7 +117,11 @@ void setpixelLUT1(int32_t x, int32_t y,uint16_t color);
 
 void core1_main() {
   //multicore_lockout_victim_init();
+  static int frame = 0;
   while (1) {
+    if (++frame % 100 == 0) {
+      printf("Core1 alive: %d\n", frame);
+    }
     if (autoUpdate){
       pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
     }     
