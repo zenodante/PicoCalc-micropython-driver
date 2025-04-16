@@ -643,7 +643,7 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
     }
   
     // バックスペース (BS)
-    if ((c == 0x08) || (c == 0x7f)) {
+    if (c == 0x7f) {
       cursorBackward(1);
       uint16_t idx = YP * SC_W + XP;
       screen[idx] = 0;
@@ -652,7 +652,10 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
       sc_updateChar(XP, YP);
       return mp_const_none;
     }
-  
+    if (c == 0x08) {
+      cursorBackward(1);
+      return mp_const_none;
+    }
     // タブ (TAB)
     if (c == 0x09) {
       int16_t idx = -1;
