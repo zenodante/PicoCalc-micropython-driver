@@ -117,10 +117,10 @@ static const uint8_t defaultMode = 0b00001000;
 static const uint16_t defaultModeEx = 0b0000000001000000;
 static const ATTR defaultAttr = {0b00000000};
 static const COLOR defaultColor = {(clBlack << 4) | clWhite}; // back, fore
-uint8_t escMode = NONE;         // エスケープシーケンスモード
-bool isShowCursor = false;     // カーソル表示中か？
-bool canShowCursor = true;    // カーソル表示可能か？
-bool hasParam = false;         // <ESC> [ がパラメータを持っているか？
+uint8_t escMode = NONE;         // esc mode indicator
+bool isShowCursor = false;     // is the cursor shown in last call?
+bool canShowCursor = true;    // can the cursor be shown?
+bool hasParam = false;         // <ESC> [ has parameters
 bool isDECPrivateMode = false; // DEC Private Mode (<ESC> [ ?)
 MODE mode;
 //mode.value = defaultMode;
@@ -380,73 +380,73 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
     int c = mp_obj_get_int(value_obj);
     // [ESC] キー
     if (c == 0x1b) {
-      escMode = ES;   // エスケープシーケンス開始
+      escMode = ES;   // esc mode start
       return mp_const_none;
     }
     // エスケープシーケンス
     if (escMode == ES) {
       switch (c) {
         case '[':
-          // Control Sequence Introducer (CSI) シーケンス へ
+          // Control Sequence Introducer (CSI) 
           clearParams(CSI);
           break;
         case '#':
-          // Line Size Command  シーケンス へ
+          // Line Size Command  
           clearParams(LSC);
           break;
         case '(':
-          // G0 セット シーケンス へ
+          // G0 
           clearParams(G0S);
           break;
         case ')':
-          // G1 セット シーケンス へ
+          // G1 
           clearParams(G1S);
           break;
         default:
-          // <ESC> xxx: エスケープシーケンス
+          // <ESC> xxx: 
           switch (c) {
             case '7':
-              // DECSC (Save Cursor): カーソル位置と属性を保存
+              // DECSC (Save Cursor): save cursor position 
               saveCursor();
               break;
             case '8':
-              // DECRC (Restore Cursor): 保存したカーソル位置と属性を復帰
+              // DECRC (Restore Cursor): 
               restoreCursor();
               break;
             case '=':
-              // DECKPAM (Keypad Application Mode): アプリケーションキーパッドモードにセット
+              // DECKPAM (Keypad Application Mode): 
               keypadApplicationMode();
               break;
             case '>':
-              // DECKPNM (Keypad Numeric Mode): 数値キーパッドモードにセット
+              // DECKPNM (Keypad Numeric Mode):
               keypadNumericMode();
               break;
             case 'D':
-              // IND (Index): カーソルを一行下へ移動
+              // IND (Index): one line down
               vindex(1);
               break;
             case 'E':
-              // NEL (Next Line): 改行、カーソルを次行の最初へ移動
+              // NEL (Next Line): 
               nextLine();
               break;
             case 'H':
-              // HTS (Horizontal Tabulation Set): 現在の桁位置にタブストップを設定
+              // HTS (Horizontal Tabulation Set): 
               horizontalTabulationSet();
               break;
             case 'M':
-              // RI (Reverse Index): カーソルを一行上へ移動
+              // RI (Reverse Index): 
               reverseIndex(1);
               break;
             case 'Z':
-              // DECID (Identify): 端末IDシーケンスを送信
+              // DECID (Identify): 
               identify();
               break;
             case 'c':
-              // RIS (Reset To Initial State): リセット
+              // RIS (Reset To Initial State): 
               resetToInitialState();
               break;
             default:
-              // 未確認のシーケンス
+              // not decodeable
               unknownSequence(escMode, c);
               break;
           }
@@ -456,7 +456,7 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
       return mp_const_none;
     }
   
-    // "[" Control Sequence Introducer (CSI) シーケンス
+    // "[" Control Sequence Introducer (CSI)
     int16_t v1 = 0;
     int16_t v2 = 0;
   
@@ -479,110 +479,110 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
         if (hasParam) nVals++;
         switch (c) {
           case 'A':
-            // CUU (Cursor Up): カーソルをPl行上へ移動
+            // CUU (Cursor Up): 
             v1 = (nVals == 0) ? 1 : vals[0];
             reverseIndex(v1);
             break;
           case 'B':
-            // CUD (Cursor Down): カーソルをPl行下へ移動
+            // CUD (Cursor Down): 
             v1 = (nVals == 0) ? 1 : vals[0];
             cursorDown(v1);
             break;
           case 'C':
-            // CUF (Cursor Forward): カーソルをPc桁右へ移動
+            // CUF (Cursor Forward): 
             v1 = (nVals == 0) ? 1 : vals[0];
             cursorForward(v1);
             break;
           case 'D':
-            // CUB (Cursor Backward): カーソルをPc桁左へ移動
+            // CUB (Cursor Backward): 
             v1 = (nVals == 0) ? 1 : vals[0];
             cursorBackward(v1);
             break;
           case 'H':
-          // CUP (Cursor Position): カーソルをPl行Pc桁へ移動
+          // CUP (Cursor Position): 
           case 'f':
-            // HVP (Horizontal and Vertical Position): カーソルをPl行Pc桁へ移動
+            // HVP (Horizontal and Vertical Position): 
             v1 = (nVals == 0) ? 1 : vals[0];
             v2 = (nVals <= 1) ? 1 : vals[1];
             cursorPosition(v1, v2);
             break;
           case 'J':
-            // ED (Erase In Display): 画面を消去
+            // ED (Erase In Display): 
             v1 = (nVals == 0) ? 0 : vals[0];
             eraseInDisplay(v1);
             break;
           case 'K':
-            // EL (Erase In Line) 行を消去
+            // EL (Erase In Line) 
             v1 = (nVals == 0) ? 0 : vals[0];
             eraseInLine(v1);
             break;
           case 'L':
-            // IL (Insert Line): カーソルのある行の前に Ps 行空行を挿入
+            // IL (Insert Line): 
             v1 = (nVals == 0) ? 1 : vals[0];
             insertLine(v1);
             break;
           case 'M':
-            // DL (Delete Line): カーソルのある行から Ps 行を削除
+            // DL (Delete Line): 
             v1 = (nVals == 0) ? 1 : vals[0];
             deleteLine(v1);
             break;
           case 'c':
-            // DA (Device Attributes): 装置オプションのレポート
+            // DA (Device Attributes): 
             v1 = (nVals == 0) ? 0 : vals[0];
             deviceAttributes(v1);
             break;
           case 'g':
-            // TBC (Tabulation Clear): タブストップをクリア
+            // TBC (Tabulation Clear): 
             v1 = (nVals == 0) ? 0 : vals[0];
             tabulationClear(v1);
             break;
           case 'h':
             if (isDECPrivateMode) {
-              // DECSET (DEC Set Mode): モードのセット
+              // DECSET (DEC Set Mode):
               decSetMode(vals, nVals);
             } else {
-              // SM (Set Mode): モードのセット
+              // SM (Set Mode): 
               setMode(vals, nVals);
             }
             break;
           case 'l':
             if (isDECPrivateMode) {
-              // DECRST (DEC Reset Mode): モードのリセット
+              // DECRST (DEC Reset Mode): 
               decResetMode(vals, nVals);
             } else {
-              // RM (Reset Mode): モードのリセット
+              // RM (Reset Mode): 
               resetMode(vals, nVals);
             }
             break;
           case 'm':
-            // SGR (Select Graphic Rendition): 文字修飾の設定
+            // SGR (Select Graphic Rendition): 
             if (nVals == 0)
               nVals = 1; // vals[0] = 0
             selectGraphicRendition(vals, nVals);
             break;
           case 'n':
-            // DSR (Device Status Report): 端末状態のリポート
+            // DSR (Device Status Report): 
             v1 = (nVals == 0) ? 0 : vals[0];
             deviceStatusReport(v1);
             break;
           case 'q':
-            // DECLL (Load LEDS): LED の設定
+            // DECLL (Load LEDS): 
             v1 = (nVals == 0) ? 0 : vals[0];
             loadLEDs(v1);
             break;
           case 'r':
-            // DECSTBM (Set Top and Bottom Margins): スクロール範囲をPt行からPb行に設定
+            // DECSTBM (Set Top and Bottom Margins): 
             v1 = (nVals == 0) ? 1 : vals[0];
             v2 = (nVals <= 1) ? SC_H : vals[1];
             setTopAndBottomMargins(v1, v2);
             break;
           case 'y':
-            // DECTST (Invoke Confidence Test): テスト診断を行う
+            // DECTST (Invoke Confidence Test): 
             if ((nVals > 1) && (vals[0] = 2))
               invokeConfidenceTests(vals[1]);
             break;
           default:
-            // 未確認のシーケンス
+            // unknown command
             unknownSequence(escMode, c);
             break;
         }
@@ -592,23 +592,23 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
     }else if (escMode == LSC) {
       switch (c) {
         case '3':
-          // DECDHL (Double Height Line): カーソル行を倍高、倍幅、トップハーフへ変更
+          // DECDHL (Double Height Line): 
           doubleHeightLine_TopHalf();
           break;
         case '4':
-          // DECDHL (Double Height Line): カーソル行を倍高、倍幅、ボトムハーフへ変更
+          // DECDHL (Double Height Line): 
           doubleHeightLine_BotomHalf();
           break;
         case '5':
-          // DECSWL (Single-width Line): カーソル行を単高、単幅へ変更
+          // DECSWL (Single-width Line): 
           singleWidthLine();
           break;
         case '6':
-          // DECDWL (Double-Width Line): カーソル行を単高、倍幅へ変更
+          // DECDWL (Double-Width Line): 
           doubleWidthLine();
           break;
         case '8':
-          // DECALN (Screen Alignment Display): 画面を文字‘E’で埋める
+          // DECALN (Screen Alignment Display): 
           screenAlignmentDisplay();
           break;
         default:
@@ -619,12 +619,12 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
       clearParams(NONE);
       return mp_const_none;
     }else if (escMode == G0S) {
-      // SCS (Select Character Set): G0 文字コードの設定
+      // SCS (Select Character Set): G0 
       setG0charset(c);
       clearParams(NONE);
       return mp_const_none;
     }else if(escMode == G1S) {
-      // SCS (Select Character Set): G1 文字コードの設定
+      // SCS (Select Character Set): G1 
       setG1charset(c);
       clearParams(NONE);
       return mp_const_none;
@@ -724,7 +724,7 @@ static void saveCursor(void) {
     bColor.value = cColor.value;
 }
   
-  // DECRC (Restore Cursor): 保存したカーソル位置と属性を復帰
+  // DECRC (Restore Cursor): 
 static void restoreCursor(void){
     XP = b_XP;
     YP = b_YP;
@@ -732,12 +732,12 @@ static void restoreCursor(void){
     cColor.value = bColor.value;
 }
   
-  // DECKPAM (Keypad Application Mode): アプリケーションキーパッドモードにセット
+  // DECKPAM (Keypad Application Mode): 
 static void keypadApplicationMode(void) {
     return;
   }
   
-  // DECKPNM (Keypad Numeric Mode): 数値キーパッドモードにセット
+  // DECKPNM (Keypad Numeric Mode): 
 static void keypadNumericMode(void) {
     return;
 }
@@ -745,25 +745,25 @@ static void keypadNumericMode(void) {
 
 
 
-  // IND (Index): カーソルを一行下へ移動
-  // (DECSTBM の影響を受ける)
+  // IND (Index): 
+
 static void vindex(int16_t v) {
     cursorDown(v);
 }
 
-// NEL (Next Line): 改行、カーソルを次行の最初へ移動
-// (DECSTBM の影響を受ける)
+// NEL (Next Line): 
+
 static void nextLine(void) {
     scroll();
 }
   
-  // HTS (Horizontal Tabulation Set): 現在の桁位置にタブストップを設定
+  // HTS (Horizontal Tabulation Set): 
 static void horizontalTabulationSet(void) {
     tabs[XP] = 1;
   }
   
-  // RI (Reverse Index): カーソルを一行上へ移動
-  // (DECSTBM の影響を受ける)
+  // RI (Reverse Index): 
+
 static void reverseIndex(int16_t v) {
     //cursorUp(v);
     if ((YP - v) < M_TOP) {
@@ -798,7 +798,7 @@ static void reverseIndex(int16_t v) {
     }
   }
   
-  // DECID (Identify): 端末IDシーケンスを送信
+  // DECID (Identify): 
 static void identify(void) {
     deviceAttributes(0); // same as DA (Device Attributes)
   }
@@ -811,11 +811,11 @@ static void resetToInitialState(void) {
   }
 
 
-// "[" Control Sequence Introducer (CSI) シーケンス
+// "[" Control Sequence Introducer (CSI) 
 // -----------------------------------------------------------------------------
 
-// CUU (Cursor Up): カーソルをPl行上へ移動
-// (DECSTBM の影響を受ける)
+// CUU (Cursor Up): 
+
 /* 
 static void cursorUp(int16_t v) {
     if ((YP - v) <= M_TOP){
@@ -825,8 +825,8 @@ static void cursorUp(int16_t v) {
     }
   }
 */  
-  // CUD (Cursor Down): カーソルをPl行下へ移動
-  // (DECSTBM の影響を受ける)
+  // CUD (Cursor Down): 
+
 static void cursorDown(int16_t v) {
 
     if ((YP+v)>M_BOTTOM){
@@ -836,7 +836,7 @@ static void cursorDown(int16_t v) {
     }
   }
   
-  // CUF (Cursor Forward): カーソルをPc桁右へ移動
+  // CUF (Cursor Forward): 
 static void cursorForward(int16_t v) {
     if ((XP+v)>=SC_W){
         XP = MAX_SC_X;
@@ -845,7 +845,7 @@ static void cursorForward(int16_t v) {
     }
   }
   
-  // CUB (Cursor Backward): カーソルをPc桁左へ移動
+  // CUB (Cursor Backward): 
   void cursorBackward(int16_t v) {
     if ((XP-v)<0){
         XP=0;
@@ -854,8 +854,8 @@ static void cursorForward(int16_t v) {
     }
   }
   
-  // CUP (Cursor Position): カーソルをPl行Pc桁へ移動
-  // HVP (Horizontal and Vertical Position): カーソルをPl行Pc桁へ移動
+  // CUP (Cursor Position): 
+  // HVP (Horizontal and Vertical Position): 
 static void cursorPosition(uint8_t y, uint8_t x) {
 
     if ((y-1)>=SC_H){
@@ -872,7 +872,7 @@ static void cursorPosition(uint8_t y, uint8_t x) {
 
 }
   
-  // 画面を再描画
+
 static void refreshScreen(void) {
 
     for (uint8_t i = 0; i < SC_H; i++){
@@ -880,28 +880,28 @@ static void refreshScreen(void) {
     }
 }
   
-  // ED (Erase In Display): 画面を消去
+
 static void eraseInDisplay(uint8_t m) {
     uint8_t sl = 0, el = 0;
     uint16_t idx = 0, n = 0;
   
     switch (m) {
       case 0:
-        // カーソルから画面の終わりまでを消去
+
         sl = YP;
         el = MAX_SC_Y;
         idx = YP * SC_W + XP;
         n   = SCSIZE - (YP * SC_W + XP);
         break;
       case 1:
-        // 画面の始めからカーソルまでを消去
+
         sl = 0;
         el = YP;
         idx = 0;
         n = YP * SC_W + XP + 1;
         break;
       case 2:
-        // 画面全体を消去
+
         sl = 0;
         el = MAX_SC_Y;
         idx = 0;
@@ -918,23 +918,23 @@ static void eraseInDisplay(uint8_t m) {
     }
   }
   
-  // EL (Erase In Line): 行を消去
+  // EL (Erase In Line): 
 static void eraseInLine(uint8_t m) {
     uint16_t slp = 0, elp = 0;
   
     switch (m) {
       case 0:
-        // カーソルから行の終わりまでを消去
+        // current to end
         slp = YP * SC_W + XP;
         elp = YP * SC_W + MAX_SC_X;
         break;
       case 1:
-        // 行の始めからカーソルまでを消去
+        // start to current
         slp = YP * SC_W;
         elp = YP * SC_W + XP;
         break;
       case 2:
-        // 行全体を消去
+        // whole line
         slp = YP * SC_W;
         elp = YP * SC_W + MAX_SC_X;
         break;
@@ -950,8 +950,8 @@ static void eraseInLine(uint8_t m) {
     }
 }
   
-  // IL (Insert Line): カーソルのある行の前に Ps 行空行を挿入
-  // (DECSTBM の影響を受ける)
+  // IL (Insert Line): 
+
 static void insertLine(uint8_t v) {
     int16_t rows = v;
     if (rows == 0) return;
@@ -974,8 +974,8 @@ static void insertLine(uint8_t v) {
       sc_updateLine(y);
   }
   
-  // DL (Delete Line): カーソルのある行から Ps 行を削除
-  // (DECSTBM の影響を受ける)
+  // DL (Delete Line): 
+
 static  void deleteLine(uint8_t v) {
     int16_t rows = v;
     if (rows == 0) return;
@@ -999,7 +999,7 @@ static  void deleteLine(uint8_t v) {
       sc_updateLine(y);
   }
   
-  // CPR (Cursor Position Report): カーソル位置のレポート
+  // CPR (Cursor Position Report): 
 static void cursorPositionReport(uint16_t y, uint16_t x) {
     char temp[30];
     int32_t len = sprintf(temp, "\x1b[%d;%dR", SC_H, SC_W);
@@ -1010,8 +1010,8 @@ static void cursorPositionReport(uint16_t y, uint16_t x) {
     }
 }
   
-  // DA (Device Attributes): 装置オプションのレポート
-  // オプションのレポート
+  // DA (Device Attributes): 
+
 static void deviceAttributes(uint8_t m) {
 
     if (outputLen + 7 <= sizeof(outputBuf)) {
@@ -1020,37 +1020,37 @@ static void deviceAttributes(uint8_t m) {
       }
   }
   
-  // TBC (Tabulation Clear): タブストップをクリア
+  // TBC (Tabulation Clear): 
 static void tabulationClear(uint8_t m) {
     switch (m) {
       case 0:
-        // 現在位置のタブストップをクリア
+        // current position
         tabs[XP] = 0;
         break;
       case 3:
-        // すべてのタブストップをクリア
+        // all tabs
         memset(tabs, 0x00, SC_W);
         break;
     }
   }
 
-  // LNM (Line Feed / New Line Mode): 改行モード
+  // LNM (Line Feed / New Line Mode): 
 static void lineMode(bool m) {
     mode.Flgs.CrLf = m;
   }
   
-  // DECSCNM (Screen Mode): // 画面反転モード
+  // DECSCNM (Screen Mode):  
 static void screenMode(bool m) {
     mode_ex.Flgs.ScreenReverse = m;
     refreshScreen();
   }
   
-  // DECAWM (Auto Wrap Mode): 自動折り返しモード
+  // DECAWM (Auto Wrap Mode): 
 static void autoWrapMode(bool m) {
     mode_ex.Flgs.WrapLine = m;
   }
   
-  // SM (Set Mode): モードのセット
+  // SM (Set Mode): 
 static void setMode(int16_t *vals, int16_t nVals) {
     for (int16_t i = 0; i < nVals; i++) {
       switch (vals[i]) {
@@ -1059,7 +1059,7 @@ static void setMode(int16_t *vals, int16_t nVals) {
           lineMode(true);
           break;
         case 4:
-          // IRM (Insert Mode): 挿入モード
+          // IRM (Insert Mode): 
           mode_ex.Flgs.InsertMode = 1;
           break;
         default:
@@ -1068,21 +1068,21 @@ static void setMode(int16_t *vals, int16_t nVals) {
     }
   }
   
-  // DECSET (DEC Set Mode): モードのセット
+  // DECSET (DEC Set Mode): 
 static void decSetMode(int16_t *vals, int16_t nVals) {
     for (int16_t i = 0; i < nVals; i++) {
       switch (vals[i]) {
         case 5:
-          // DECSCNM (Screen Mode): // 画面反転モード
+          // DECSCNM (Screen Mode): 
           screenMode(true);
           break;
         case 7:
-          // DECAWM (Auto Wrap Mode): 自動折り返しモード
+          // DECAWM (Auto Wrap Mode):
           autoWrapMode(true);
           break;
 
         case 25:
-          // DECTCEM (Cursor Mode): カーソル表示モード
+          // DECTCEM (Cursor Mode): 
           canShowCursor = true;
           break;
         default:
@@ -1091,7 +1091,7 @@ static void decSetMode(int16_t *vals, int16_t nVals) {
     }
   }
   
-  // RM (Reset Mode): モードのリセット
+  // RM (Reset Mode): 
 static void resetMode(int16_t *vals, int16_t nVals) {
     for (int16_t i = 0; i < nVals; i++) {
       switch (vals[i]) {
@@ -1101,7 +1101,7 @@ static void resetMode(int16_t *vals, int16_t nVals) {
           break;
 
         case 4:
-          // IRM (Insert Mode): 挿入モード
+          // IRM (Insert Mode): 
           mode_ex.Flgs.InsertMode = 0;
           break;
         default:
@@ -1110,20 +1110,20 @@ static void resetMode(int16_t *vals, int16_t nVals) {
     }
   }
   
-  // DECRST (DEC Reset Mode): モードのリセット
+  // DECRST (DEC Reset Mode): 
 static void decResetMode(int16_t *vals, int16_t nVals) {
     for (int16_t i = 0; i < nVals; i++) {
       switch (vals[i]) {
         case 5:
-          // DECSCNM (Screen Mode): // 画面反転モード
+          // DECSCNM (Screen Mode): 
           screenMode(false);
           break;
         case 7:
-          // DECAWM (Auto Wrap Mode): 自動折り返しモード
+          // DECAWM (Auto Wrap Mode): 
           autoWrapMode(false);
           break;
         case 25:
-          // DECTCEM (Cursor Mode): カーソル表示モード
+          // DECTCEM (Cursor Mode): 
           canShowCursor = false;
           break;
         default:
@@ -1132,7 +1132,7 @@ static void decResetMode(int16_t *vals, int16_t nVals) {
     }
   }
   
-  // SGR (Select Graphic Rendition): 文字修飾の設定
+  // SGR (Select Graphic Rendition): 
 static void selectGraphicRendition(int16_t *vals, int16_t nVals) {
     uint8_t seq = 0;
     uint16_t r, g, b, cIdx;
@@ -1143,44 +1143,44 @@ static void selectGraphicRendition(int16_t *vals, int16_t nVals) {
         case 0:
           switch (v) {
             case 0:
-              // 属性クリア
+                // Reset all attributes
               cAttr.value = 0;
               cColor.value = defaultColor.value;
               break;
             case 1:
-              // 太字
+              // Bold
               cAttr.Bits.Bold = 1;
               break;
             case 4:
-              // アンダーライン
+              // char with underline
               cAttr.Bits.Underline = 1;
               break;
             case 5:
-              // 点滅 (明色表現)
+              // blink
               cAttr.Bits.Blink = 1;
               break;
             case 7:
-              // 反転
+              // reverse
               cAttr.Bits.Reverse = 1;
               break;
             case 21:
-              // 二重下線 or 太字オフ
+              // bold
               cAttr.Bits.Bold = 0;
               break;
             case 22:
-              // 太字オフ
+              // bold remove
               cAttr.Bits.Bold = 0;
               break;
             case 24:
-              // アンダーラインオフ
+              // char with underline remove
               cAttr.Bits.Underline = 0;
               break;
             case 25:
-              // 点滅 (明色表現) オフ
+              // blink remove
               cAttr.Bits.Blink = 0;
               break;
             case 27:
-              // 反転オフ
+              // inverse remove
               cAttr.Bits.Reverse = 0;
               break;
             case 38:
@@ -1188,7 +1188,7 @@ static void selectGraphicRendition(int16_t *vals, int16_t nVals) {
               isFore = true;
               break;
             case 39:
-              // 前景色をデフォルトに戻す
+              // front color recover
               cColor.Color.Foreground = defaultColor.Color.Foreground;
               break;
             case 48:
@@ -1196,15 +1196,15 @@ static void selectGraphicRendition(int16_t *vals, int16_t nVals) {
               isFore = false;
               break;
             case 49:
-              // 背景色をデフォルトに戻す
+              // background recover
               cColor.Color.Background = defaultColor.Color.Background;
               break;
             default:
               if (v >= 30 && v <= 37) {
-                // 前景色
+                //front color
                 cColor.Color.Foreground = v - 30;
               } else if (v >= 40 && v <= 47) {
-                // 背景色
+                // background color
                 cColor.Color.Background = v - 40;
               }
               break;
@@ -1229,16 +1229,16 @@ static void selectGraphicRendition(int16_t *vals, int16_t nVals) {
           // Index Color
           if (v < 256) {
             if (v < 16) {
-              // ANSI カラー (16 色のインデックスカラーが使われる)
+              // 16 color
               cIdx = v;
             } else if (v < 232) {
-              // 6x6x6 RGB カラー (8 色のインデックスカラー中で最も近い色が使われる)
+              // 6x6x6 RGB 
               b = ( (v - 16)       % 6) / 3;
               g = (((v - 16) /  6) % 6) / 3;
               r = (((v - 16) / 36) % 6) / 3;
               cIdx = (b << 2) | (g << 1) | r;
             } else {
-              // 24 色グレースケールカラー (2 色のグレースケールカラーが使われる)
+              // 244 color
               if (v < 244)
                 cIdx = clBlack;
               else
@@ -1261,7 +1261,6 @@ static void selectGraphicRendition(int16_t *vals, int16_t nVals) {
           break;
         case 5:
           // RGB - B
-          // RGB (8 色のインデックスカラー中で最も近い色が使われる)
           if (vals[i-2]>128){
             r = 1;
           }else{
@@ -1291,7 +1290,7 @@ static void selectGraphicRendition(int16_t *vals, int16_t nVals) {
     }
 }
   
-  // DSR (Device Status Report): 端末状態のリポート
+  // DSR (Device Status Report): 
 static void deviceStatusReport(uint8_t m) {
     switch (m) {
       case 5:
@@ -1307,13 +1306,13 @@ static void deviceStatusReport(uint8_t m) {
     }
   }
 
-  // DECLL (Load LEDS): LED の設定
+  // DECLL (Load LEDS): 
 static  void loadLEDs(uint8_t m) {
     return;
     
   }
   
-  // DECSTBM (Set Top and Bottom Margins): スクロール範囲をPt行からPb行に設定
+  // DECSTBM (Set Top and Bottom Margins): 
 static  void setTopAndBottomMargins(int16_t s, int16_t e) {
     if (e <= s) return;
     M_TOP    = s - 1;
@@ -1323,38 +1322,38 @@ static  void setTopAndBottomMargins(int16_t s, int16_t e) {
     setCursorToHome();
   }
   
-  // DECTST (Invoke Confidence Test): テスト診断を行う
+  // DECTST (Invoke Confidence Test): 
 static void invokeConfidenceTests(uint8_t m) {
      return;
 }
 
-  // "]" Operating System Command (OSC) シーケンス
+  // "]" Operating System Command (OSC) 
   // -----------------------------------------------------------------------------
   
-  // "#" Line Size Command  シーケンス
+  // "#" Line Size Command  
   // -----------------------------------------------------------------------------
   
-  // DECDHL (Double Height Line): カーソル行を倍高、倍幅、トップハーフへ変更
+  // DECDHL (Double Height Line): 
 static void doubleHeightLine_TopHalf(void) {
     return;
   }
   
-  // DECDHL (Double Height Line): カーソル行を倍高、倍幅、ボトムハーフへ変更
+  // DECDHL (Double Height Line): 
 static  void doubleHeightLine_BotomHalf(void) {
     return;
   }
   
-  // DECSWL (Single-width Line): カーソル行を単高、単幅へ変更
+  // DECSWL (Single-width Line): 
 static void singleWidthLine(void) {
     return;
   }
   
-  // DECDWL (Double-Width Line): カーソル行を単高、倍幅へ変更
+  // DECDWL (Double-Width Line): 
 static void doubleWidthLine(void) {
     return;
   }
   
-  // DECALN (Screen Alignment Display): 画面を文字‘E’で埋める
+  // DECALN (Screen Alignment Display): 
 static  void screenAlignmentDisplay(void) {
     
     memset(screen, 0x45, SCSIZE);
@@ -1367,7 +1366,7 @@ static  void screenAlignmentDisplay(void) {
   // "(" G0 Sets Sequence
   // -----------------------------------------------------------------------------
   
-  // G0 文字コードの設定
+  // G0 
 static  void setG0charset(char c) {
     return;
   }
@@ -1375,7 +1374,7 @@ static  void setG0charset(char c) {
   // "(" G1 Sets Sequence
   // -----------------------------------------------------------------------------
   
-  // G1 文字コードの設定
+  // G1 
 static void setG1charset(char c) {
     return;
   }
@@ -1383,7 +1382,7 @@ static void setG1charset(char c) {
   // Unknown Sequence
   // -----------------------------------------------------------------------------
   
-  // 不明なシーケンス
+
 static void unknownSequence(uint8_t m, char c) {
     return;
   }
