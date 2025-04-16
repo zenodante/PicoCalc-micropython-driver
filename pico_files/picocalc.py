@@ -50,7 +50,11 @@ class PicoDisplay(framebuf.FrameBuffer):
         picocalcdisplay.init(self.buffer,color_type,True)
 
         
-
+    def stopRefresh(self):
+        picocalcdisplay.stopAutoUpdate()
+    
+    def recoverRefresh(self):
+        picocalcdisplay.startAutoUpdate()
     
     def text(self,c, x0, y0, color):
         picocalcdisplay.drawTxt6x8(c,x0,y0,color)

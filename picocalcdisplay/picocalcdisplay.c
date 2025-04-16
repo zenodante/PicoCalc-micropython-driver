@@ -258,7 +258,11 @@ static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     //sleep_ms(100);
     //pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
     //sleep_ms(10);
-    multicore_launch_core1_with_stack(core1_main, core1_stack, CORE1_STACK_SIZE);
+    if autoUpdate==true){
+      multicore_reset_core1();
+      multicore_launch_core1_with_stack(core1_main, core1_stack, CORE1_STACK_SIZE);
+    }
+    //multicore_launch_core1_with_stack(core1_main, core1_stack, CORE1_STACK_SIZE);
 
     return mp_const_true;
 }
@@ -307,6 +311,8 @@ static mp_obj_t drawTxt6x8(mp_uint_t n_args, const mp_obj_t *args){
 }
 static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(drawTxt6x8_obj, 4, 4, drawTxt6x8);
 
+
+
 static mp_obj_t setLUT(mp_obj_t LUT_obj){
     mp_buffer_info_t buf_info;
     mp_get_buffer_raise(LUT_obj, &buf_info, MP_BUFFER_READ);
@@ -320,7 +326,8 @@ static MP_DEFINE_CONST_FUN_OBJ_1(setLUT_obj, setLUT);
 
 static mp_obj_t startAutoUpdate(void){
   autoUpdate = true;
-  //__sev();
+  multicore_reset_core1();
+  multicore_launch_core1_with_stack(core1_main, core1_stack, CORE1_STACK_SIZE);
   return mp_const_true;
 }
 static MP_DEFINE_CONST_FUN_OBJ_0(startAutoUpdate_obj, startAutoUpdate);
@@ -328,6 +335,7 @@ static MP_DEFINE_CONST_FUN_OBJ_0(startAutoUpdate_obj, startAutoUpdate);
 
 static mp_obj_t stopAutoUpdate(void){
   autoUpdate = false;
+  multicore_reset_core1();
   return mp_const_true;
 }
 static MP_DEFINE_CONST_FUN_OBJ_0(stopAutoUpdate_obj, stopAutoUpdate);
@@ -744,7 +752,6 @@ static const mp_rom_map_elem_t picocalcdisplay_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_startAutoUpdate), MP_ROM_PTR(&startAutoUpdate_obj) },
     { MP_ROM_QSTR(MP_QSTR_stopAutoUpdate), MP_ROM_PTR(&stopAutoUpdate_obj) },
     { MP_ROM_QSTR(MP_QSTR_drawTxt6x8), MP_ROM_PTR(&drawTxt6x8_obj) },
-
 };
 static MP_DEFINE_CONST_DICT(picocalcdisplay_globals, picocalcdisplay_globals_table);
 

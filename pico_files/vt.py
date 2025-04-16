@@ -41,6 +41,11 @@ class vt(uio.IOBase):
         with open(filename, "wb") as f:
             f.write(self.framebuf.buf)
 
+    def stopRefresh(self):
+        self.framebuf.stopRefresh()
+
+    def recoverRefresh(self):
+        self.framebuf.recoverRefresh()
 
     def wr(self,input):
         #print("WR:", repr(input))

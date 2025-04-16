@@ -1090,7 +1090,9 @@ class Editor:
                             return
                     except:
                         pass
+                self.io_device.stopRefresh()#hold core 1 functions
                 self.put_file(fname)
+                self.io_device.recoverRefresh()#recover core 1 functions
                 self.fname = fname
                 self.hash = self.hash_buffer()
                 self.changed = ""
@@ -1284,8 +1286,9 @@ def pye_edit(content, tab_size=4, undo=50, io_device=None):
         try:
             index %= len(slot)
             key = slot[index].edit_loop()
-            if key == KEY_QUIT:
+            if key == KEY_QUIT:   
                 if len(slot) == 1:
+                    slot[0].cursor(False)
                     break
                 del slot[index]
             elif key == KEY_GET:
@@ -1299,12 +1302,13 @@ def pye_edit(content, tab_size=4, undo=50, io_device=None):
             elif key == KEY_PREV:
                 index -= 1
             elif key == KEY_FORCE_QUIT:
+                slot[0].cursor(False)#hide cursor 
                 break
             elif key in slot:
                 index = slot.index(key)
         except Exception as err:
             slot[index].message = "{!r}".format(err)
-    Editor.yank_buffer = []
+    Editor.yank_buffer = []   
     os.chdir(current_dir)
     return slot[0].content if (slot[0].fname == "") else slot[0].fname
 try:
