@@ -31,16 +31,19 @@ class vt(uio.IOBase):
             folder = '/sd'+self.captureFolder
         else:
             folder = self.captureFolder
-
+        self.framebuf.stopRefresh()
         if not folder in os.listdir(folder.rsplit("/", 1)[0]):
             try:
                 os.mkdir(folder)
             except OSError:
+                self.framebuf.recoverRefresh()
                 return
         filename = "{}/screen_{}.raw".format(folder, time.ticks_ms())
         with open(filename, "wb") as f:
             f.write(self.framebuf.buf)
+        self.framebuf.recoverRefresh()
 
+        
     def stopRefresh(self):
         self.framebuf.stopRefresh()
 
