@@ -1288,7 +1288,7 @@ def pye_edit(content, tab_size=4, undo=50, io_device=None):
             key = slot[index].edit_loop()
             if key == KEY_QUIT:   
                 if len(slot) == 1:
-                    slot[0].cursor(False)
+                    #slot[0].cursor(False)
                     break
                 del slot[index]
             elif key == KEY_GET:
@@ -1302,7 +1302,7 @@ def pye_edit(content, tab_size=4, undo=50, io_device=None):
             elif key == KEY_PREV:
                 index -= 1
             elif key == KEY_FORCE_QUIT:
-                slot[0].cursor(False)#hide cursor 
+                #slot[0].cursor(False)#hide cursor 
                 break
             elif key in slot:
                 index = slot.index(key)
