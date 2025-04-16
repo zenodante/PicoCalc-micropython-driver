@@ -1,26 +1,26 @@
 syntax_style = {
-    "def": "\u001b[34m",
-    "class": "\u001b[35m",
-    "if": "\u001b[36m",
-    "elif": "\u001b[36m",
-    "else": "\u001b[36m",
-    "while": "\u001b[33m",
-    "for": "\u001b[33m",
-    "in": "\u001b[36m",
-    "True": "\u001b[32m",
-    "False": "\u001b[31m",
-    "import": "\u001b[34m",
-    "from": "\u001b[34m",
-    "return": "\u001b[35m",
-    "pass": "\u001b[35m",
-    "break": "\u001b[35m",
-    "try": "\u001b[36m",
-    "except": "\u001b[36m",
-    "raise": "\u001b[36m",
-    "and": "\u001b[36m",
-    "or": "\u001b[36m",
-    "not": "\u001b[36m",
-    "#": "\u001b[32m",
-    "string": "\u001b[33m",
-    "multiline": "\u001b[32m"
+    "def":       "\x1b[37;44m",  # white on deep blue
+    "class":     "\x1b[37;45m",  # white on magenta
+    "if":        "\x1b[37;46m",  # white on cyan
+    "elif":      "\x1b[37;46m",
+    "else":      "\x1b[37;46m",
+    "while":     "\x1b[37;46m",
+    "for":       "\x1b[37;46m",
+    "in":        "\x1b[37;46m",
+    "True":      "\x1b[36m",     # bright cyan text only
+    "False":     "\x1b[31m",     # bright red text only
+    "import":    "\x1b[37;44m",
+    "from":      "\x1b[37;44m",
+    "return":    "\x1b[37;45m",
+    "pass":      "\x1b[37;45m",
+    "break":     "\x1b[37;45m",
+    "try":       "\x1b[37;46m",
+    "except":    "\x1b[37;46m",
+    "raise":     "\x1b[37;46m",
+    "and":       "\x1b[37;46m",
+    "or":        "\x1b[37;46m",
+    "not":       "\x1b[37;46m",
+    "#":         "\x1b[32m",     # bright green text only
+    "string":    "\x1b[33m",  # yellow on black
+    "multiline": "\x1b[32m"
 }
