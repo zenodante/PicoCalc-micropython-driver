@@ -1,7 +1,7 @@
 
 
 # MicroPython Drivers for PicoCalc
-
+![REPL](./imgs/framebuffer.jpg)
 ## Build Instructions
 
 ```
@@ -61,8 +61,14 @@ Fully functional and tested. Works seamlessly with vt100 terminal emulator.
 - Python wrapper uses `framebuf` interface and handles display swapping.  
 - Display updates now run on `core1` for a smoother REPL experience.
 
+### ✅ screen capture
+- Using ctrl + u to capture screen buffer into your sd card. currently only at the root of the sd card
+The Data is in raw type. For default 16 color framebuff copy, it is 50kB each. Left pixel in high 4 bit.
+Standard vt 100 16 color map may use to rebuild the image. I will upload a python script to convert it.
+
 ### 🔲 Speaker Driver  
 Not available yet.
+
 
 ---
 
@@ -72,6 +78,7 @@ You can launch the built-in Python code editor by calling:
 ```python
 edit("abc.py")
 ```
+![editor](./imgs/framebuffer2.jpg)
 Editor is based on [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
 Now with keyword highlighting support.
 

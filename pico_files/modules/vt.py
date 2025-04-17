@@ -31,9 +31,9 @@ class vt(uio.IOBase):
             folder = '/sd'+self.captureFolder
         else:
             return
-        filename = "{}screen_{}.raw".format(folder, time.ticks_ms())
+        filename = "{}screen_{}.raw".format('/sd/', time.ticks_ms())
         with open(filename, "wb") as f:
-            f.write(self.framebuf.buf)
+            f.write(self.framebuf.buffer)
 
 
         
@@ -73,7 +73,7 @@ class vt(uio.IOBase):
             keys = bytes(self.keyboardInput[:n])
             if self.screencaptureKey in keys:
                 self.screencapture()
-            self.outputBuffer.extend(keys)
+            self.outputBuffer.extend(self.keyboardInput[:n])
 
     def rd(self):
         while not self.outputBuffer:
