@@ -22,7 +22,6 @@ def usb_debug(msg):
         _usb.write(str(msg))
     _usb.write('\r\n')
 
-usb_debug = usb_debug
 def edit(*args, tab_size=2, undo=50):
     ret = pye_edit(args, tab_size=tab_size, undo=undo, io_device=pc_terminal)
     return ret
