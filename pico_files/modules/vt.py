@@ -14,8 +14,9 @@ class vt(uio.IOBase):
     def __init__(self,framebuf,keyboard,screencaptureKey=0x15,sd=None,captureFolder="/"): #ctrl+U for screen capture
         if not captureFolder.startswith("/"):
             captureFolder = "/"+captureFolder
-        if captureFolder.endswith("/"):
-            captureFolder = captureFolder[:-1]
+        captureFolder = '/sd'+captureFolder
+        if not captureFolder.endswith("/"):
+            captureFolder = captureFolder+"/"
         self.captureFolder = captureFolder
 
         self.framebuf = framebuf
@@ -28,12 +29,11 @@ class vt(uio.IOBase):
     
     def screencapture(self):
         if self.sd:
-            folder = '/sd'+self.captureFolder
-        else:
-            return
-        filename = "{}screen_{}.raw".format('/sd/', time.ticks_ms())
-        with open(filename, "wb") as f:
-            f.write(self.framebuf.buffer)
+            filename = "{}screen_{}.raw".format(self.captureFolder, time.ticks_ms())
+            with open(filename, "wb") as f:
+                f.write(self.framebuf.buffer)
+            return True
+        return False
 
 
         
