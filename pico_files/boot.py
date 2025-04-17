@@ -32,6 +32,8 @@ try:
     builtins.sd = sd
 
     def edit(*args, tab_size=2, undo=50):
+        #dry the key buffer before editing
+        pc_terminal.dryBuffer()
         return pye_edit(args, tab_size=tab_size, undo=undo, io_device=pc_terminal)
     builtins.edit = edit
 

@@ -35,7 +35,8 @@ class vt(uio.IOBase):
             return True
         return False
 
-
+    def dryBuffer(self):
+        self.outputBuffer.clear()
         
     def stopRefresh(self):
         self.framebuf.stopRefresh()
