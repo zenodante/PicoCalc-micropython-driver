@@ -70,7 +70,7 @@ Not available yet.
 
 You can launch the built-in Python code editor by calling:
 ```python
-edit(["abc.py"])
+edit("abc.py")
 ```
 Editor is based on [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
 Now with keyword highlighting support.
