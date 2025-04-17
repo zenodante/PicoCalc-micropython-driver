@@ -54,7 +54,7 @@ Using Thonny is the easiest method for file transfer and interaction.
 ## Features
 
 ### ✅ Keyboard Driver  
-Fully functional and tested. Works seamlessly with `FBConsole`.
+Fully functional and tested. Works seamlessly with vt100 terminal emulator.
 
 ### ✅ ILI9488 Display Driver (C module + Python interface)  
 - C module supports high-speed 1/2/4/8-bit LUT drawing and 16-bit 565RGB.  
