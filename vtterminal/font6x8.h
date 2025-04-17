@@ -4,7 +4,7 @@
 
 #ifndef FONT6X8_H
 #define FONT6X8_H
-
+#include <stdint.h>
 const uint8_t font6x8G1[] ={
   // 0x20 (   )
   0b00000000,
@@ -870,7 +870,7 @@ const uint8_t font6x8G1[] ={
   0b00000000,
   0b00000000,
   0b00000000,
-}
+};
 //CP437 - IBM/MS-DOS Codepage
 //https://en.wikipedia.org/wiki/Code_page_437
 const uint8_t CP437[] = {

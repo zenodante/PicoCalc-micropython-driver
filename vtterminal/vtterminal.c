@@ -1,5 +1,5 @@
 //A modified version of vt100 emulator from https://github.com/ht-deko/vt100_stm32
-
+#include "font6x8.h"
 #include "vtterminal.h"
 #include <stdint.h>
 #include <stdbool.h>
@@ -11,7 +11,7 @@
 #include "py/mphal.h"
 #include "py/gc.h"
 #include "py/misc.h"
-#include "font6x8.h"
+
 
 #include "pico/stdlib.h"
 #include "hardware/timer.h"
@@ -641,12 +641,12 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
         XP = 0;
         return mp_const_none;
     }
-    if (c=0x0e){//using g1
+    if (c== 0x0e){//using g1
         mode.Flgs.g0g1 = 1;
         currentTextTable=G1TABLE;
         return mp_const_none;
     }
-    if (c=0x0f){//using g0
+    if (c==0x0f){//using g0
         mode.Flgs.g0g1 = 0;
         currentTextTable=G0TABLE;
         return mp_const_none;

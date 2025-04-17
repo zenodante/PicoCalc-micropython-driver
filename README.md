@@ -1,58 +1,87 @@
-# MICROPYTHON DRIVERS FOR PICOCALC
 
 
+# MicroPython Drivers for PicoCalc
 
+## Build Instructions
 
-## BUILD
 ```
-Folder structure
+Folder structure:
 
 |
-|-micropython                      //clone micropython folder here
-|      |-ports
-|         |-rp2
-|           |-build               //create folder for build
-|           |-modules             //here put fbconsole.py and picocalc.py
-|-PicoCalc-micropython-driver     //folder for driver module
-|      |-picocalcdisplay
-|      |-vtterminal
-|-Any other modules like ulab, etc. al
+|- micropython                      # Clone the MicroPython repo here
+|   |- ports
+|      |- rp2
+|         |- build                 # Create this build folder
+|         |- modules               # Place fbconsole.py and picocalc.py here
+|
+|- PicoCalc-micropython-driver     # Driver modules
+|   |- picocalcdisplay
+|   |- vtterminal
+|
+|- Any additional modules (e.g., ulab, etc.)
 ```
 
-Build Micropython Normally, While including as user module
-```
+Build MicroPython as usual, while including user modules:
+```sh
 cd micropython/ports/rp2
 git submodule update --init --recursive
 mkdir build && cd build
-cmake .. -DUSER_C_MODULES="Location/Of/PicoCalc-micropython-driver/picocalcdisplay/micropython.cmake;Location/Of/PicoCalc-micropython-driver/vtterminal/micropython.cmake" -DMICROPY_BOARD=[TARGET BOARD]
+cmake .. \
+  -DUSER_C_MODULES="Path/To/PicoCalc-micropython-driver/picocalcdisplay/micropython.cmake;Path/To/PicoCalc-micropython-driver/vtterminal/micropython.cmake" \
+  -DMICROPY_BOARD=[TARGET_BOARD]
 ```
-Target Boards Can Be:
-* RPI_PICO
-* RPI_PICO2
-* RPI_PICO2_W
 
-Others untested.
+Supported `TARGET_BOARD` values:
+- `RPI_PICO`
+- `RPI_PICO2`
+- `RPI_PICO2_W`
 
-## INSTALLATION
-* Flash UF2 to Pico Normally
-* Place Python Files from pico_files into Pico's Root Directory
+(Other boards are untested.)
 
-(Using Thonny is Easiest)
+---
 
-## FEATURES
-#### Keyboard Driver
-Done (tested, work with FBconsole now)
-#### ILI9488 Driver In C Module/Python  
-C part has been done for fast 1,2,4,8 bit LUT operation and 16bit 565RGB, frameBuf based swap class in python . 
-Now using core1 for framebuff update to screen. Much faster REPL display.
-#### Speaker Driver
-N/A
+## Installation
 
-## TODO
-Code Editor... Working on terminal emulator. Modified from:https://github.com/ht-deko/vt100_stm32
+- Flash the compiled `.uf2` to your Pico as usual.
+- **Place only `main.py` in the root directory.**
+- **Delete all existing `.py` files in `/lib`** (e.g., `fbconsole.py`, `picocalc.py`, etc.).  
+  > These modules are already *frozen* into the firmware!
 
-## CREDITS
-FBconsole is a modified version of https://github.com/boochow/FBConsole
+Using Thonny is the easiest method for file transfer and interaction.
 
+---
 
-sdcard.py is from [The official Micropython Repository](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py)
+## Features
+
+### ✅ Keyboard Driver  
+Fully functional and tested. Works seamlessly with `FBConsole`.
+
+### ✅ ILI9488 Display Driver (C module + Python interface)  
+- C module supports high-speed 1/2/4/8-bit LUT drawing and 16-bit 565RGB.  
+- Python wrapper uses `framebuf` interface and handles display swapping.  
+- Display updates now run on `core1` for a smoother REPL experience.
+
+### 🔲 Speaker Driver  
+Not available yet.
+
+---
+
+## Usage Notes
+
+You can launch the built-in Python code editor by calling:
+```python
+edit(["abc.py"])
+```
+Editor is based on [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
+Now with keyword highlighting support.
+
+The REPL and editor both run inside a VT100 terminal emulator, based on  
+[ht-deko/vt100_stm32](https://github.com/ht-deko/vt100_stm32), with bug fixes and additional features.
+
+---
+
+## Credits
+- [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
+- [ht-deko/vt100_stm32](https://github.com/ht-deko/vt100_stm32)
+- `sdcard.py` is from the official MicroPython repository:  
+  [micropython-lib/sdcard.py](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py)
