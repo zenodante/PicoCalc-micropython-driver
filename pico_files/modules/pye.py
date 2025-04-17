@@ -6,6 +6,7 @@ try:
 except:
     import sys
 import gc
+import re
 if sys.implementation.name == "micropython":
     is_micropython = True
     import uos as os
@@ -210,7 +211,7 @@ class Editor:
         self.key_max = 0
         for _ in Editor.KEYMAP.keys():
             self.key_max = max(self.key_max, len(_))
-    
+    '''
     def highlight_line(self, line):
         result = []
         parts = line.split(" ")
@@ -228,7 +229,52 @@ class Editor:
                 result.append(part)
 
         return " ".join(result)
+    '''
+    def highlight_line(self, line):
+        result = []
+
+        hash_index = -1
+        in_string = False
+        string_quote = None
+
+        for i, ch in enumerate(line):
+            if ch in ('"', "'"):
+                if not in_string:
+                    in_string = True
+                    string_quote = ch
+                elif ch == string_quote:
+                    in_string = False
+            elif ch == '#' and not in_string:
+                hash_index = i
+                break
+
+        if hash_index >= 0:
+            code_part = line[:hash_index]
+            comment_part = line[hash_index:]
+        else:
+            code_part = line
+            comment_part = ""
+
+        token_pattern = r"(\s+|==|!=|<=|>=|[-+*/=<>():,])"
+        tokens = re.split(token_pattern, code_part)
+
+        for token in tokens:
+            if not token:
+                continue
+            if token.isspace():
+                result.append(token)
+            elif token in self.syntax_style:
+                result.append(self.syntax_style[token] + token + "\x1b[0m")
+            else:
+                result.append(token)
+
     
+        if comment_part:
+            result.append(self.syntax_style.get("#", "") + comment_part + "\x1b[0m")
+
+        return ''.join(result)
+    
+
     def goto(self, row, col):
         self.wr(Editor.TERMCMD[0].format(row=row + 1, col=col + 1))
     def clear_to_eol(self):
