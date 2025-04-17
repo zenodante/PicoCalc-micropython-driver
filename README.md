@@ -12,7 +12,7 @@ Folder structure:
 |   |- ports
 |      |- rp2
 |         |- build                 # Create this build folder
-|         |- modules               # Place fbconsole.py and picocalc.py here
+|         |- modules               # Place all py files from pico_files/modules/
 |
 |- PicoCalc-micropython-driver     # Driver modules
 |   |- picocalcdisplay

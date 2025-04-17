@@ -30,18 +30,11 @@ class vt(uio.IOBase):
         if self.sd:
             folder = '/sd'+self.captureFolder
         else:
-            folder = self.captureFolder
-        self.framebuf.stopRefresh()
-        if not folder in os.listdir(folder.rsplit("/", 1)[0]):
-            try:
-                os.mkdir(folder)
-            except OSError:
-                self.framebuf.recoverRefresh()
-                return
-        filename = "{}/screen_{}.raw".format(folder, time.ticks_ms())
+            return
+        filename = "{}screen_{}.raw".format(folder, time.ticks_ms())
         with open(filename, "wb") as f:
             f.write(self.framebuf.buf)
-        self.framebuf.recoverRefresh()
+
 
         
     def stopRefresh(self):
@@ -65,30 +58,7 @@ class vt(uio.IOBase):
     def get_screen_size(self):
         return[sc_char_height,sc_char_width]
     
-    def rd(self):
-        while not self.outputBuffer:
-            s = vtterminal.read()
-            if s:
-                try:
-                    self.outputBuffer.extend(ord(ch) for ch in s)
-                except TypeError:
-                    raise ValueError("vtterminal.read() must return str")
-                except ValueError:
-                    raise ValueError("Non-ASCII character in vtterminal.read()")
-
-            n = self.keyboard.readinto(self.keyboardInput)
-            if n:          
-                #if self.screencaptureKey in self.keyboardInput[:n]:
-                #    self.screencapture()
-                self.outputBuffer.extend(self.keyboardInput[:n])
-
-        return chr(self.outputBuffer.popleft())
-        
-
-    def rd_raw(self):
-        return self.rd()
-    
-    def readinto(self, buf):
+    def _updateInternalBuffer(self):
         s = vtterminal.read()
         if s:
             try:
@@ -97,9 +67,26 @@ class vt(uio.IOBase):
                 raise ValueError("vtterminal.read() must return str")
             except ValueError:
                 raise ValueError("Non-ASCII character in vtterminal.read()")
+
         n = self.keyboard.readinto(self.keyboardInput)
-        if n:
-            self.outputBuffer.extend(self.keyboardInput[:n])   
+        if n:          
+            keys = bytes(self.keyboardInput[:n])
+            if self.screencaptureKey in keys:
+                self.screencapture()
+            self.outputBuffer.extend(keys)
+
+    def rd(self):
+        while not self.outputBuffer:
+            self._updateInternalBuffer()
+
+        return chr(self.outputBuffer.popleft())
+        
+
+    def rd_raw(self):
+        return self.rd()
+    
+    def readinto(self, buf):
+        self._updateInternalBuffer()
         count = 0
         buf_len = len(buf)
         for i in range(buf_len):
