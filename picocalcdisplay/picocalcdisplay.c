@@ -336,6 +336,8 @@ static MP_DEFINE_CONST_FUN_OBJ_0(startAutoUpdate_obj, startAutoUpdate);
 static mp_obj_t stopAutoUpdate(void){
   autoUpdate = false;
   multicore_reset_core1();
+  //wait until possible dma is done
+  while (dma_channel_is_busy(st_dma));
   return mp_const_true;
 }
 static MP_DEFINE_CONST_FUN_OBJ_0(stopAutoUpdate_obj, stopAutoUpdate);
