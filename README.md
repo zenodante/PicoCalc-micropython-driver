@@ -21,6 +21,7 @@ Folder structure:
 |- Any additional modules (e.g., ulab, etc.)
 ```
 
+Copy all files from pico_files/modules/ to micropython/ports/rp2/modules/ folder
 Build MicroPython as usual, while including user modules:
 ```sh
 cd micropython/ports/rp2
