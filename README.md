@@ -43,7 +43,7 @@ Supported `TARGET_BOARD` values:
 ## Installation
 
 - Flash the compiled `.uf2` to your Pico as usual.
-- **Place only `main.py` in the root directory.**
+- **Place only `main.py,root.py` from pico_files/root/ in the pico root directory.**
 - **Delete all existing `.py` files in `/lib`** (e.g., `fbconsole.py`, `picocalc.py`, etc.).  
   > These modules are already *frozen* into the firmware!
 
@@ -73,6 +73,10 @@ Not available yet.
 ---
 
 ## Usage Notes
+
+#### Working with WIFI on picoW/2W
+The wifi chip connect to the rp2040/2350 via spi1, which shared with LCD. As we autorefresh the lcd on core1, it is necessary to stop the auto refresh function first via the function:
+pc_terminal.stopRefresh(), after wifi finish its work, use pc_terminal.recoverRefresh() to recover the LCD refreshing.
 
 You can launch the built-in Python code editor by calling:
 ```python

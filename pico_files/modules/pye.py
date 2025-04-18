@@ -6,6 +6,7 @@ try:
 except:
     import sys
 import gc
+import re
 if sys.implementation.name == "micropython":
     is_micropython = True
     import uos as os
@@ -20,8 +21,11 @@ else:
         return x
     import os
     from _io import StringIO
+import re
 from re import compile as re_compile
 import time
+from highlighter import Highlighter
+
 
 KEY_NONE = const(0x00)
 KEY_UP = const(0x0B)
@@ -84,6 +88,8 @@ KEY_PREV_PLACE = const(0xFFE2)
 KEY_UNDO_PREV = const(0xFFE1)
 KEY_UNDO_NEXT = const(0xFFE0)
 KEY_UNDO_YANK = const(0xFFDF)
+
+
 class Editor:
     KEYMAP = {
         "\x1b[A": KEY_UP,
@@ -191,6 +197,7 @@ class Editor:
 
         from default_style import syntax_style
         Editor.syntax_style = syntax_style
+        self.hl = Highlighter(syntax_style=Editor.syntax_style, max_tokens=300)
         self.top_line = self.cur_line = self.row = self.vcol = self.col = self.margin = 0
         self.tab_size = tab_size
         self.changed = ""
@@ -210,7 +217,7 @@ class Editor:
         self.key_max = 0
         for _ in Editor.KEYMAP.keys():
             self.key_max = max(self.key_max, len(_))
-    
+    '''
     def highlight_line(self, line):
         result = []
         parts = line.split(" ")
@@ -229,6 +236,51 @@ class Editor:
 
         return " ".join(result)
     
+    def highlight_line(self, line):
+        result = []
+
+        hash_index = -1
+        in_string = False
+        string_quote = None
+
+        for i, ch in enumerate(line):
+            if ch in ('"', "'"):
+                if not in_string:
+                    in_string = True
+                    string_quote = ch
+                elif ch == string_quote:
+                    in_string = False
+            elif ch == '#' and not in_string:
+                hash_index = i
+                break
+
+        if hash_index >= 0:
+            code_part = line[:hash_index]
+            comment_part = line[hash_index:]
+        else:
+            code_part = line
+            comment_part = ""
+
+        token_pattern = r"(\s+|==|!=|<=|>=|[-+*/=<>():,])"
+        tokens = re.split(token_pattern, code_part)
+
+        for token in tokens:
+            if not token:
+                continue
+            if token.isspace():
+                result.append(token)
+            elif token in self.syntax_style:
+                result.append(self.syntax_style[token] + token + "\x1b[0m")
+            else:
+                result.append(token)
+
+    
+        if comment_part:
+            result.append(self.syntax_style.get("#", "") + comment_part + "\x1b[0m")
+
+        return ''.join(result)
+    '''
+
     def goto(self, row, col):
         self.wr(Editor.TERMCMD[0].format(row=row + 1, col=col + 1))
     def clear_to_eol(self):
@@ -350,7 +402,8 @@ class Editor:
                     self.goto(c, 0)
                     if flag == 0:
                         #self.wr(l[1])
-                        highlighted = self.highlight_line(l[1])
+                        highlighted = self.hl.highlight_line(l[1])
+                        #highlighted = self.highlight_line(l[1])
                         self.wr(highlighted)
                     elif flag == 7:
                         self.wr(l[1][:start_col])

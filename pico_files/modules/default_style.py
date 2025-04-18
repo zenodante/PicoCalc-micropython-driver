@@ -11,6 +11,7 @@ syntax_style = {
     "False":     "\x1b[31m",     # bright red text only
     "import":    "\x1b[37;44m",
     "from":      "\x1b[37;44m",
+    "as":        "\x1b[37;44m",
     "return":    "\x1b[37;45m",
     "pass":      "\x1b[37;45m",
     "break":     "\x1b[37;45m",

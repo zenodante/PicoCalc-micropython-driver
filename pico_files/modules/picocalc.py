@@ -214,12 +214,10 @@ class PicoKeyboard:
                             self.hardwarekeyBuf.extend(b'\x1b[H')
                         elif key == 0xD5: #end
                             self.hardwarekeyBuf.extend(b'\x1b[F')
-                        elif key == 0x08 or key == 0xD4: #backspace and del
-                            if modifier != b'':
-                                parameters = b'3'
-                                self.hardwarekeyBuf.extend(b'\x1b['+parameters+modifier+b'~')
-                            else:
-                                self.hardwarekeyBuf.append(0x7F)
+                        elif key == 0x08: #backspace
+                            self.hardwarekeyBuf.append(0x7F)
+                        elif key == 0xD4: #delete
+                            self.hardwarekeyBuf.extend(b'\x1b[3'+modifier+b'~')
                         else:
                             if self.isAlt == True:
                                 if key !=ord(' ') and key!=ord(',') and key!=ord('.'):
