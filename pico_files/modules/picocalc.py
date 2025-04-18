@@ -59,8 +59,8 @@ class PicoDisplay(framebuf.FrameBuffer):
     def text(self,c, x0, y0, color):
         picocalcdisplay.drawTxt6x8(c,x0,y0,color)
 
-    def show(self):
-        picocalcdisplay.update()
+    def show(self,core=0):
+        picocalcdisplay.update(core)
 
 
 
