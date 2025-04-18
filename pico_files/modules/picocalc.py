@@ -230,8 +230,8 @@ class PicoKeyboard:
                             else:
                                 self.hardwarekeyBuf.append(key)
                 else:
-                    if key == 0xa2:
-                        self.isShift =False
+                    if key == 0xa2 or key == 0xa3:
+                        self.isShift = False
                     elif key == 0xa5:
                         self.isCtrl = False
                     elif key == 0xa1:
