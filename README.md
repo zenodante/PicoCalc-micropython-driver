@@ -43,7 +43,7 @@ Supported `TARGET_BOARD` values:
 ## Installation
 
 - Flash the compiled `.uf2` to your Pico as usual.
-- **Place only `main.py` in the root directory.**
+- **Place only `main.py,root.py` from pico_files/root/ in the pico root directory.**
 - **Delete all existing `.py` files in `/lib`** (e.g., `fbconsole.py`, `picocalc.py`, etc.).  
   > These modules are already *frozen* into the firmware!
 
