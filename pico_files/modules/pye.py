@@ -21,8 +21,11 @@ else:
         return x
     import os
     from _io import StringIO
+import re
 from re import compile as re_compile
 import time
+from highlighter import Highlighter
+
 
 KEY_NONE = const(0x00)
 KEY_UP = const(0x0B)
@@ -85,6 +88,8 @@ KEY_PREV_PLACE = const(0xFFE2)
 KEY_UNDO_PREV = const(0xFFE1)
 KEY_UNDO_NEXT = const(0xFFE0)
 KEY_UNDO_YANK = const(0xFFDF)
+
+
 class Editor:
     KEYMAP = {
         "\x1b[A": KEY_UP,
@@ -192,6 +197,7 @@ class Editor:
 
         from default_style import syntax_style
         Editor.syntax_style = syntax_style
+        self.hl = Highlighter(syntax_style=Editor.syntax_style, max_tokens=300)
         self.top_line = self.cur_line = self.row = self.vcol = self.col = self.margin = 0
         self.tab_size = tab_size
         self.changed = ""
@@ -229,7 +235,7 @@ class Editor:
                 result.append(part)
 
         return " ".join(result)
-    '''
+    
     def highlight_line(self, line):
         result = []
 
@@ -273,7 +279,7 @@ class Editor:
             result.append(self.syntax_style.get("#", "") + comment_part + "\x1b[0m")
 
         return ''.join(result)
-    
+    '''
 
     def goto(self, row, col):
         self.wr(Editor.TERMCMD[0].format(row=row + 1, col=col + 1))
@@ -396,7 +402,8 @@ class Editor:
                     self.goto(c, 0)
                     if flag == 0:
                         #self.wr(l[1])
-                        highlighted = self.highlight_line(l[1])
+                        highlighted = self.hl.highlight_line(l[1])
+                        #highlighted = self.highlight_line(l[1])
                         self.wr(highlighted)
                     elif flag == 7:
                         self.wr(l[1][:start_col])

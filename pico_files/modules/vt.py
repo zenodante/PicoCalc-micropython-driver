@@ -9,7 +9,6 @@ sc_char_width =  const(53)
 sc_char_height =  const(40)
 
 def ensure_nested_dir(path):
-    import uos
     parts = path.split("/")
     current = ""
     for part in parts:
@@ -53,7 +52,8 @@ class vt(uio.IOBase):
         return False
 
     def dryBuffer(self):
-        self.outputBuffer.clear()
+        self.outputBuffer = deque((), 30)
+
         
     def stopRefresh(self):
         self.framebuf.stopRefresh()
