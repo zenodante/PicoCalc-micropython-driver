@@ -165,8 +165,8 @@ class PicoKeyboard:
                 key = keyGot[1]
                 if state == _StatePress or state == _StateLongPress:
 
-                    if key == 0xa2:
-                        self.isShift =True
+                    if key == 0xa2 or key == 0xa3:
+                        self.isShift = True
                     elif key == 0xa5:
                         self.isCtrl = True
                     elif key == 0xa1:
