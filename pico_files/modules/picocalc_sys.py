@@ -225,7 +225,7 @@ def scan():
       print('Devices Found:',len(devices))
 
       for device in devices:  
-        print(f"Decimal: {device:3} | Hex: {hex(device)}")c
+        print(f"Decimal: {device:3} | Hex: {hex(device)}")
         
 async def pwm(pin, frequency, duration):
     """
