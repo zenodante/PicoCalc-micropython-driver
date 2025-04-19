@@ -1,5 +1,4 @@
 import picocalc
-import picocalc_sys
 from picocalc import PicoDisplay, PicoKeyboard
 import machine
 import os
