@@ -5,6 +5,12 @@ from machine import Pin, I2C
 from collections import deque
 import time
 
+sd = None
+keyboard, display = None, None
+terminal = None
+edit = None
+usb_debug = None
+
 _REG_VER = const(0x01) # fw version
 _REG_CFG = const(0x02) # config
 _REG_INT = const(0x03) # interrupt status
@@ -28,7 +34,6 @@ _StateIdle = const(0)
 _StatePress = const(1)
 _StateLongPress = const(2)
 _StateRelease = const(3)
-
 
 class PicoDisplay(framebuf.FrameBuffer):
     def __init__(self, width, height,color_type = framebuf.GS4_HMSB):
