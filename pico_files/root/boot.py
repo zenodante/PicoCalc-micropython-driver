@@ -1,20 +1,16 @@
 import picocalc
+import picocalc_sys
 from picocalc import PicoDisplay, PicoKeyboard
 import machine
 import os
 import vt
 import sys
-from colorer import Fore, Style, print, autoreset
-autoreset(True)
 # Separated imports because Micropython is super finnicky
-from picocalc_sys import run
-from picocalc_sys import files
-from picocalc_sys import memory
-from picocalc_sys import disk
+from picocalc_sys import run, files
+from picocalc_sys import memory, disk
 # from picocalc_system import clear as clear
+from picocalc_sys import initsd, killsd, checksd
 
-from picocalc_sys import initsd
-from picocalc_sys import killsd
 from pye import pye_edit
 # Mount SD card to /sd on boot
 try:
@@ -50,8 +46,8 @@ try:
     picocalc.edit = edit
 
     os.dupterm(pc_terminal)
-    if sd is not None:
-        print(f"{Style.BRIGHT}{Fore.GREEN}SD Mounted Successfully.")
+    
+    checksd()
     #usb_debug("boot.py done.")
 
 except Exception as e:

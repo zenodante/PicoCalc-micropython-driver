@@ -17,6 +17,8 @@ import gc
 import uasyncio as asyncio
 
 import picocalc
+from colorer import Fore, Back, Style, print, autoreset
+autoreset(True)
 
 def human_readable_size(size):
     """
@@ -38,7 +40,7 @@ def prepare_for_launch(keep_vars=( "gc", "__name__")):
             del globals()[k]
     gc.collect()
 
-def is_directory_present(path):
+def is_dir(path):
     """
     Helper function to shittily replace os.path.exists (not in micropython)
     Absolutely not a good replacement, but decent enough for seeing if the SD is mounted
@@ -135,7 +137,7 @@ def disk():
     """
     filesystem_paths = ['/', '/sd']
     for path in filesystem_paths:
-        if is_directory_present(path) or path == '/':
+        if is_dir(path) or path == '/':
             if path == '/sd':
                 # Indicate SD card status
                 print("SD card mounted.")
@@ -184,7 +186,6 @@ def initsd():
                           miso=16), machine.Pin(17))
             # Mount filesystem
             uos.mount(picocalc.sd, "/sd")
-            print("SD card mounted successfully.")
         except Exception as e:
             print(f"Failed to mount SD card: {e}")
             picocalc.sd = None
@@ -207,13 +208,11 @@ def killsd(sd_mnt="/sd"):
         except Exception as e: 
             print(f"Failed to unmount SD card: {e}")
     return
-"""
-def print_color(message, color):
-    picocalc_globals.fb.fgcolor = color
-    print(message)
-    picocalc_globals.fb.fgcolor = colors.fgdefault
+
+def checksd(sd_mnt="/sd"):
+    if is_dir(sd_mnt):
+        print(f"{Fore.GREEN}SD Mounted Successfully.")
     return
-"""
 
 def scan():
     i2c = machine.I2C(1, sda=machine.Pin(6), scl=machine.Pin(7), freq=10000)
