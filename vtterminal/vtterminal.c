@@ -1411,11 +1411,11 @@ static void drawTxt6x8(uint8_t *fb,uint8_t c,int x0,int y0, uint8_t color){
   // extract arguments
     int x;
     int y;
-    if (c < 32 ) {
-      c = 32;
+    if (c < 16 ) {
+      c = 16;
     }
       // get char data
-    const uint8_t *chr_data = &currentTextTable[(c - 32) * CH_H];
+    const uint8_t *chr_data = &currentTextTable[(c - 16) * CH_H];
       // loop over char data
     y = y0;
     for (; y < y0+CH_H; y++) {  
