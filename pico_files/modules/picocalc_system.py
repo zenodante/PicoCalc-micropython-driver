@@ -1,6 +1,6 @@
 """
 PicoCalc system functions for micropython
-Written by: Laika, 4/9/2025
+Written by: Laika, 4/19/2025
 
 Requires sdcard.py from the official Micropython repository
 https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py
@@ -13,6 +13,10 @@ import uos
 import machine
 import sdcard
 import gc
+
+import picocalc
+from colorer import Fore, Back, Style, print, autoreset
+autoreset(True)
 
 def human_readable_size(size):
     """
@@ -28,6 +32,20 @@ def human_readable_size(size):
     # Fallthrough isnt even possible to be needed on the PicoCalc, neither is TB, but its a universal function
     return f"{size:.2f} PB"
 
+def is_dir(path):
+    """
+    Helper function to shittily replace os.path.exists (not in micropython)
+    Absolutely not a good replacement, but decent enough for seeing if the SD is mounted
+    
+    Inputs: path to check for
+    Outputs: boolean if path is found
+    """
+    # List the root directory to check for the existence of the desired path
+    try:
+        directories = os.listdir('/')
+        return path.lstrip('/') in directories
+    except OSError:
+        return False
 
 def prepare_for_launch(keep_vars=( "gc", "__name__")):
     for k in list(globals()):
@@ -100,24 +118,42 @@ def memory():
     print(f"Free RAM: {human_readable_free}")
 
 def disk():
-    fs_stat = os.statvfs('/')
+    """
+    Prints available flash and SD card space (if mounted) as well as totals
+    
+    Input: None
+    Outputs: None, prints disk statuses
+    """
+    filesystem_paths = ['/', '/sd']
+    for path in filesystem_paths:
+        if is_dir(path) or path == '/':
+            if path == '/sd':
+                # Indicate SD card status
+                print("SD card mounted.")
+                print("Indexing SD Card, Please Wait.")
+            try:
+                fs_stat = os.statvfs(path)
+                block_size = fs_stat[1]
+                total_blocks = fs_stat[2]
+                free_blocks = fs_stat[3]
+                total_size = total_blocks * block_size
+                free_size = free_blocks * block_size
+                human_readable_total = human_readable_size(total_size)
+                human_readable_free = human_readable_size(free_size)
 
-    # Calculate total and free space
-    total_blocks = fs_stat[0]  # Total number of blocks
-    free_blocks = fs_stat[3]   # Number of free blocks
-    block_size = fs_stat[1]    # Block size in bytes
+                if path == '/':
+                    print(f"Total filesystem size: {human_readable_total}")
+                    print(f"Free filesystem space: {human_readable_free}")
+                else:
+                    print(f"Total SD size: {human_readable_total}")
+                    print(f"Free SD space: {human_readable_free}")
 
-    # Calculate total and free size in bytes
-    total_size = total_blocks * block_size
-    free_size = free_blocks * block_size
+            except OSError:
+                print(f"Unexpected error accessing filesystem at '{path}'.")
 
-    # Convert to kilobytes for easier reading
-    human_readable_total = human_readable_size(total_size)
-    human_readable_free = human_readable_size(free_size)
-
-    # Print the total and free space
-    print(f"Total filesystem size: {human_readable_total}")
-    print(f"Free filesystem space: {human_readable_free}")
+        else:
+            if path == '/sd':
+                print("No SD Card Mounted.")
     
 def initsd():
     """
@@ -127,23 +163,26 @@ def initsd():
     Inputs: None
     Outputs: None (Mounts SD card if it is present)
     """
-    sd = None
-    try:
-        sd = sdcard.SDCard(
-            machine.SPI(0,
-                      baudrate=1000000,
-                      polarity=0,
-                      phase=0,
-                      sck=18,
-                      mosi=19,
-                      miso=16), machine.Pin(17))
-        # Mount filesystem
-        uos.mount(sd, "/sd")
-    except Exception as e:
-        print("Failed to mount SD card:", e)
-    return sd
+    if picocalc.sd is None:
+        try:
+            picocalc.sd = sdcard.SDCard(
+                          machine.SPI(0,
+                          baudrate=1000000,
+                          polarity=0,
+                          phase=0,
+                          sck=18,
+                          mosi=19,
+                          miso=16), machine.Pin(17))
+            # Mount filesystem
+            uos.mount(picocalc.sd, "/sd")
+        except Exception as e:
+            print(f"Failed to mount SD card: {e}")
+            picocalc.sd = None
+    else:
+        print("SD card already mounted.")
+    return
 
-def killsd(sd="/sd"):
+def killsd(sd_mnt="/sd"):
     """
     SD Card unmounting utility for PicoCalc.
     Could technically function on any device with uos, since it uses the mount point.
@@ -151,8 +190,15 @@ def killsd(sd="/sd"):
     Inputs: Filepath to SD mount point
     Output: None, unmounts SD
     """
-    try:
-        uos.umount(sd)
-    except Exception as e: 
-        print("Failed to unmount SD card:", e)
+    if picocalc.sd is not None:
+        try:
+            uos.umount(sd_mnt)
+            picocalc.sd = None
+        except Exception as e: 
+            print(f"Failed to unmount SD card: {e}")
+    return
+
+def checksd(sd_mnt="/sd"):
+    if is_dir(sd_mnt):
+        print(f"{Fore.GREEN}SD Mounted Successfully.")
     return
