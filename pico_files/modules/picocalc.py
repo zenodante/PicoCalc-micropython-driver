@@ -207,7 +207,7 @@ class PicoKeyboard:
                                 self.hardwarekeyBuf.extend(b'\x1b['+parameters+modifier+b'C')
                         elif key == 0x0A:
                             #self.hardwarekeyBuf.append(ord('\r'))
-                            self.hardwarekeyBuf.append(ord('\n')) #return key
+                            self.hardwarekeyBuf.append(ord('\r')) #return key
                         elif key == 0xB1:  # KEY_ESC
                             self.hardwarekeyBuf.extend(b'\x1b\x1b')
                         elif key == 0xD2: #KEY_HOME

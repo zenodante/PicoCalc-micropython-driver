@@ -128,6 +128,7 @@ class Editor:
         "\x11": KEY_QUIT,
         "\x1b": KEY_QUIT,
         "\n": KEY_ENTER,
+        "\r": KEY_ENTER,
         "\x13": KEY_WRITE,
         "\x06": KEY_FIND,
         "\x0e": KEY_FIND_AGAIN,

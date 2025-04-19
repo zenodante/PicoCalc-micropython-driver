@@ -1412,7 +1412,7 @@ static void drawTxt6x8(uint8_t *fb,uint8_t c,int x0,int y0, uint8_t color){
     int x;
     int y;
     if (c < 16 ) {
-      c = 16;
+      c = 32;
     }
       // get char data
     const uint8_t *chr_data = &currentTextTable[(c - 16) * CH_H];
