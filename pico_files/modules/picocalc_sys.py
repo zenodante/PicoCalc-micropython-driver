@@ -214,6 +214,19 @@ def print_color(message, color):
     picocalc_globals.fb.fgcolor = colors.fgdefault
     return
 """
+
+def scan():
+    i2c = machine.I2C(1, sda=machine.Pin(6), scl=machine.Pin(7), freq=10000)
+    print('Scan I2C bus...')
+    devices = i2c.scan()
+    if len(devices) == 0:
+      print("No Devices Found!")
+    else:
+      print('Devices Found:',len(devices))
+
+      for device in devices:  
+        print(f"Decimal: {device:3} | Hex: {hex(device)}")c
+        
 async def pwm(pin, frequency, duration):
     """
     Generate PWM of specific frequency for duration using pin
