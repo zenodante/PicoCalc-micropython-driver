@@ -5,6 +5,12 @@ from machine import Pin, I2C
 from collections import deque
 import time
 
+sd = None
+keyboard, display = None, None
+terminal = None
+edit = None
+usb_debug = None
+
 _REG_VER = const(0x01) # fw version
 _REG_CFG = const(0x02) # config
 _REG_INT = const(0x03) # interrupt status
