@@ -4,6 +4,7 @@ import machine
 import os
 import vt
 import sys
+from clock import PicoRTC
 # Separated imports because Micropython is super finnicky
 from picocalc_sys import run, files
 from picocalc_sys import memory, disk
@@ -11,15 +12,21 @@ from picocalc_sys import memory, disk
 from picocalc_sys import initsd, killsd, checksd
 
 from pye import pye_edit
-# Mount SD card to /sd on boot
+
+from colorer import Fore, Back, Style, print, autoreset
+autoreset(True)
+
 try:
     machine.freq(200000000)
 except:
     pass
 
 try:
+    prtc = PicoRTC()
+    prtc.sync()
     pc_display = PicoDisplay(320, 320)
     pc_keyboard = PicoKeyboard()
+    # try to mount sd to /sd on boot
     sd = initsd()
     pc_terminal = vt.vt(pc_display, pc_keyboard, sd=sd)
     
@@ -47,6 +54,7 @@ try:
     os.dupterm(pc_terminal)
     
     checksd()
+    print(f"{Fore.GREEN}{prtc.get()}")
     #usb_debug("boot.py done.")
 
 except Exception as e:
