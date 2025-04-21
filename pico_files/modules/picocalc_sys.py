@@ -23,7 +23,7 @@ autoreset(True)
 def human_readable_size(size):
     """
     Returns input size in bytes in a human-readable format
-    
+
     Inputs: size in bytes
     Outputs: size in closest human-readable unit
     """
@@ -44,7 +44,7 @@ def is_dir(path):
     """
     Helper function to shittily replace os.path.exists (not in micropython)
     Absolutely not a good replacement, but decent enough for seeing if the SD is mounted
-    
+
     Inputs: path to check for
     Outputs: boolean if path is found
     """
@@ -54,17 +54,17 @@ def is_dir(path):
         return path.lstrip('/') in directories
     except OSError:
         return False
-"""
+
 def clear():
-    picocalc_globals.fb.cls()
-"""
+    print("\x1b[2J\x1b[H")
+
 
 def run(filename):
     """
     Simple run utility.
     Attempts to run python file provided by filename, returns when done.
-    
-    Inputs: python file filename/filepath 
+
+    Inputs: python file filename/filepath
     Outputs: None, runs file
     """
     try:
@@ -74,11 +74,11 @@ def run(filename):
     except Exception as e:
         print(f"An error occurred: {e}")
     return
-    
+
 def files(directory="/"):
     """
     Basic ls port.
-    
+
     Inputs: directory/filepath to list files and directories in
     Outputs: Print of all files and directories contained, along with size
     """
@@ -110,7 +110,7 @@ def files(directory="/"):
 def memory():
     """
     Prints available and free RAM
-    
+
     Inputs: None
     Outputs: None, prints RAM status
     """
@@ -121,17 +121,17 @@ def memory():
 
     # Total memory is the sum of free and allocated memory
     total_memory = free_memory + allocated_memory
-    
+
     human_readable_total = human_readable_size(total_memory)
     human_readable_free = human_readable_size(free_memory)
-    
+
     print(f"Total RAM: {human_readable_total}")
     print(f"Free RAM: {human_readable_free}")
 
 def disk():
     """
     Prints available flash and SD card space (if mounted) as well as totals
-    
+
     Input: None
     Outputs: None, prints disk statuses
     """
@@ -165,12 +165,12 @@ def disk():
         else:
             if path == '/sd':
                 print("No SD Card Mounted.")
-    
+
 def initsd():
     """
     SD Card mounting utility for PicoCalc.
     Utility is specifically for the PicoCalc's internal SD card reader, as it is tuned for its pins.
-    
+
     Inputs: None
     Outputs: None (Mounts SD card if it is present)
     """
@@ -186,6 +186,7 @@ def initsd():
                           miso=16), machine.Pin(17))
             # Mount filesystem
             uos.mount(picocalc.sd, "/sd")
+            print("SD card mounted successfully.")
         except Exception as e:
             print(f"Failed to mount SD card: {e}")
             picocalc.sd = None
@@ -197,7 +198,7 @@ def killsd(sd_mnt="/sd"):
     """
     SD Card unmounting utility for PicoCalc.
     Could technically function on any device with uos, since it uses the mount point.
-    
+
     Inputs: Filepath to SD mount point
     Output: None, unmounts SD
     """
@@ -205,7 +206,7 @@ def killsd(sd_mnt="/sd"):
         try:
             uos.umount(sd_mnt)
             picocalc.sd = None
-        except Exception as e: 
+        except Exception as e:
             print(f"Failed to unmount SD card: {e}")
     return
 
@@ -223,13 +224,13 @@ def scan():
     else:
       print('Devices Found:',len(devices))
 
-      for device in devices:  
+      for device in devices:
         print(f"Decimal: {device:3} | Hex: {hex(device)}")
-        
+
 async def pwm(pin, frequency, duration):
     """
     Generate PWM of specific frequency for duration using pin
-    
+
     Inputs:
         Pin: PWM capable pin to be used
         Frequency: Tone frequency
@@ -237,27 +238,27 @@ async def pwm(pin, frequency, duration):
     Outputs:
         PWM on capable pin
         (Noise on speakers)
-    
+
     Note:
         GPIO26 = left speaker
         GPIO27 = right speaker
     """
     pwm_pin = machine.Pin(pin)
     pwm = machine.PWM(pwm_pin)
-    pwm.freq(frequency)         
+    pwm.freq(frequency)
     pwm.duty_u16(32768)         # (value between 0 and 65535)
-    await asyncio.sleep(duration)        
+    await asyncio.sleep(duration)
     pwm.deinit()
 
 async def pwm_sequence(pin_numbers, frequencies, durations):
     # Check if all lists have the same length
     if not (len(pin_numbers) == len(frequencies) == len(durations)):
         raise ValueError("All input lists must have the same length")
-    
+
     # Iterate through each pin, frequency, and duration
     for pin, freq, dur in zip(pin_numbers, frequencies, durations):
         await pwm(pin, freq, dur)
-        
+
 # Could potentially be used to play different tones through each speaker concurrently
 async def gather_dual_pwm(task1, task2):
     await asyncio.gather(task1, task2)
@@ -265,9 +266,9 @@ async def gather_dual_pwm(task1, task2):
 # specifically asyncio.run should be never used in event loops, instead use the non wrapper functions and await pwm or pwm_sequence directly
 async def dual_pwm(task1, task2):
     asyncio.run(gather_dual_pwm(task1, task2))
-    
+
 def play_tone(pin, frequency, duration):
     asyncio.run(pwm(pin, frequency, duration))
-    
+
 def play_tones(pins, frequencies, durations):
     asyncio.run(pwm_sequence(pins, frequencies, durations))
