@@ -395,10 +395,7 @@ class Editor:
                         + ((start_line == line) << 1)
                         + (((end_line - 1) == line) << 2)
                     )
-                if c < Editor.height-1:
-                    l = (flag, self.content[line][self.margin : self.margin + Editor.width])
-                else:
-                    l = (flag, self.content[line][self.margin : self.margin + Editor.width-1])
+                l = (flag, self.content[line][self.margin : self.margin + Editor.width])
                 if (flag and line == self.cur_line) or l != Editor.scrbuf[
                     c
                 ]:
