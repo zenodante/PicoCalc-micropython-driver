@@ -56,7 +56,7 @@ def is_dir(path):
         return False
 
 def clear():
-    print("\x1b[2J\x1b[H")
+    print("\x1b[2J\x1b[H", end='')
 
 
 def run(filename):
