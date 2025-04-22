@@ -395,12 +395,11 @@ class Editor:
                         + ((start_line == line) << 1)
                         + (((end_line - 1) == line) << 2)
                     )
-
                 if c < Editor.height-1:
                     l = (flag, self.content[line][self.margin : self.margin + Editor.width])
                 else:
-                    if len(self.content[line][self.margin : self.margin + Editor.width]) >= Editor.width:
-                        l = (flag, '\x1b[1;40r\x1b[38B' + self.content[line][self.margin : self.margin + Editor.width] + '\x1b[1;39r\x1b[38B') #LOL
+                    if len(self.content[line]) >= Editor.width:
+                        l = (flag, '\x1b[1;40r\x1b[38B' + self.content[line][self.margin : self.margin + Editor.width] + '\x1b[1;39r\x1b[38B')
                     else:
                         l = (flag, self.content[line][self.margin : self.margin + Editor.width])
                 if (flag and line == self.cur_line) or l != Editor.scrbuf[
