@@ -15,7 +15,7 @@ class Fore:
     WHITE = "\033[37m"
     RESET = "\033[39m"
 
-    GREY = "\033[90m"  # Also known as bright black
+    GREY = "\033[48;5;250m"  # Bright black didnt work but this does
     BRIGHT_RED = "\033[91m"
     BRIGHT_GREEN = "\033[92m"
     BRIGHT_YELLOW = "\033[93m"
@@ -40,7 +40,7 @@ class Back:
     WHITE = "\033[47m"
     RESET = "\033[49m"
 
-    GREY = "\033[100m"  # Also known as bright black
+    GREY = "\033[48;5;250m"  # Bright black didnt work but this does
     BRIGHT_RED = "\033[101m"
     BRIGHT_GREEN = "\033[102m"
     BRIGHT_YELLOW = "\033[103m"
@@ -58,6 +58,7 @@ class Style:
     DIM = "\033[2m"
     NORMAL = "\033[22m"
     UNDERLINE = "\033[4m"
+    FLASHING = "\033[5m"
     RESET_ALL = "\033[0m"
     
 def autoreset(state):
