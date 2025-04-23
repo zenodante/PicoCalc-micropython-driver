@@ -42,3 +42,9 @@ class PicoRTC:
         internal_time = (year, month, day, weekday, hour, minute, second, 0)
         internal_rtc = RTC()
         internal_rtc.datetime(internal_time)
+        
+    def time(self):
+        """Prints the current date and time in MM/DD/YYYY HH:MM:SS format."""
+        year, month, day, _, hour, minute, second, _ = self.get()
+        formatted_time = f"{month:02}/{day:02}/{year} {hour:02}:{minute:02}:{second:02}"
+        return formatted_time
