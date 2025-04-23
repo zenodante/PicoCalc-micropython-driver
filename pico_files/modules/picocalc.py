@@ -146,19 +146,19 @@ class PicoKeyboard:
         return buf
     
     def backlight(self):
-        return self.read_reg8(_REG_BKL)
-    
+        return self.read_reg16(_REG_BKL)[1]
+
     def setBacklight(self,value):
         self.write_reg(_REG_BKL,value)
 
     def backlight_keyboard(self):
-        return self.read_reg8(_REG_BK2)
-    
+        return self.read_reg16(_REG_BK2)[1]
+
     def setBacklight_keyboard(self,value):
         self.write_reg(_REG_BK2,value)
 
     def battery(self):
-        return self.read_reg16(_REG_BAT)
+        return self.read_reg16(_REG_BAT)[1]
     
     def readinto(self, buf):
         

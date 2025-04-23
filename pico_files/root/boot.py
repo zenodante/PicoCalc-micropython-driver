@@ -4,6 +4,7 @@ import machine
 import os
 import vt
 import sys
+from battery import Bar
 from clock import PicoRTC
 # Separated imports because Micropython is super finnicky
 from picocalc_sys import run, files
@@ -22,8 +23,8 @@ except:
     pass
 
 try:
-    prtc = PicoRTC()
-    prtc.sync()
+    pc_rtc = PicoRTC()
+    pc_rtc.sync()
     pc_display = PicoDisplay(320, 320)
     pc_keyboard = PicoKeyboard()
     # try to mount sd to /sd on boot
@@ -54,7 +55,22 @@ try:
     os.dupterm(pc_terminal)
     
     checksd()
-    print(f"{Fore.GREEN}{prtc.get()}")
+    
+    bar=Bar(picocalc.display, color=2, bgcolor=1, thicc=False, subtle=False)
+    bar.draw(100)
+    def battbar(timer=None):
+        batt=picocalc.keyboard.battery()
+        if batt > 100:
+            batt-=128
+            bar.color=6
+        else:
+            bar.color=2
+        bar.draw(batt)
+        
+    battbart = machine.Timer()
+    battbart.init(mode=machine.Timer.PERIODIC,period=5000, callback=battbar)
+    
+    print(f"{Fore.GREEN}Current Time and Date: {pc_rtc.time()}")
     #usb_debug("boot.py done.")
 
 except Exception as e:
