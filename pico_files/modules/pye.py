@@ -26,6 +26,7 @@ from re import compile as re_compile
 import time
 from highlighter import Highlighter
 
+import picocalc
 
 KEY_NONE = const(0x00)
 KEY_UP = const(0x0B)
@@ -1370,6 +1371,7 @@ def pye_edit(content, tab_size=4, undo=50, io_device=None):
             slot[index].message = "{!r}".format(err)
     Editor.yank_buffer = []   
     os.chdir(current_dir)
+    picocalc.editing = False
     return slot[0].content if (slot[0].fname == "") else slot[0].fname
 try:
     import usys as sys

@@ -9,6 +9,7 @@ sd = None
 keyboard, display = None, None
 terminal = None
 edit = None
+editing = None
 usb_debug = None
 
 _REG_VER = const(0x01) # fw version

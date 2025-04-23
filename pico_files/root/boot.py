@@ -7,6 +7,7 @@ import sys
 from battery import Bar
 from clock import PicoRTC
 # Separated imports because Micropython is super finnicky
+from picocalc_sys import clear
 from picocalc_sys import run, files
 from picocalc_sys import memory, disk
 # from picocalc_system import clear as clear
@@ -17,17 +18,28 @@ from pye import pye_edit
 from colorer import Fore, Back, Style, print, autoreset
 autoreset(True)
 
+terminal_rows = 40
+terminal_width = 53
+non_scrolling_lines = 3
+
+PICO_CALC_VERSION = "1.2.5"
+show_bar = True
+
 try:
     machine.freq(200000000)
 except:
     pass
 
+def initialize_terminal():
+    print(f"\033[{non_scrolling_lines + 1};{terminal_rows}r", end='')
+    
 try:
+    if show_bar:
+        initialize_terminal()
     pc_rtc = PicoRTC()
     pc_rtc.sync()
     pc_display = PicoDisplay(320, 320)
     pc_keyboard = PicoKeyboard()
-    # try to mount sd to /sd on boot
     sd = initsd()
     pc_terminal = vt.vt(pc_display, pc_keyboard, sd=sd)
     
@@ -46,30 +58,52 @@ try:
     picocalc.terminal = pc_terminal
     picocalc.sd = sd
 
-    def edit(*args, tab_size=2, undo=50):
+    def edit(*args, tab_size=4, undo=50):
         #dry the key buffer before editing
         pc_terminal.dryBuffer()
+        picocalc.editing = True
         return pye_edit(args, tab_size=tab_size, undo=undo, io_device=pc_terminal)
     picocalc.edit = edit
 
     os.dupterm(pc_terminal)
+    print("\n\n")
     
-    checksd()
-    
-    bar=Bar(picocalc.display, color=2, bgcolor=1, thicc=False, subtle=False)
-    bar.draw(100)
-    def battbar(timer=None):
-        batt=picocalc.keyboard.battery()
-        if batt > 100:
-            batt-=128
-            bar.color=6
-        else:
-            bar.color=2
-        bar.draw(batt)
+    def print_header():
+        if not picocalc.editing:
+            description = f"PicoCalc MicroPython (ver {PICO_CALC_VERSION})"
+            battery = picocalc.keyboard.battery()
+            current_time = pc_rtc.time()
+
+            left_text = f"Battery: {battery}%"
+            right_text = f"{current_time}"
+
+            padding_left_line1 = ' ' * ((terminal_width - len(description)) // 2)
+            padding_right_line1 = ' ' * (terminal_width - len(padding_left_line1) - len(description))
+            line1 = f"{Style.FLASHING}{padding_left_line1}{description}{padding_right_line1}"
+            # Flashing isnt supported anyway, highlights nicely though
+            padding_between_left_right_line2 = ' ' * (terminal_width - len(left_text) - len(right_text))
+            line2 = f"{Style.FLASHING}{left_text}{padding_between_left_right_line2}{right_text}"
+
+
+            print("\0337", end='')  # Save cursor and attributes
+
+            # Print header
+            print(f"\033[1;1H{line1}", end='')   # Header line 1
+            print(f"\033[2;1H{line2}", end='')   # Header line 2
+            print(f"\033[3;1H{"="*terminal_width}", end='')  # Adjust the position as needed
+
+            # Restore cursor position
+            print("\0338", end='')
         
-    battbart = machine.Timer()
-    battbart.init(mode=machine.Timer.PERIODIC,period=5000, callback=battbar)
+    def update_header(timer=None):
+        print_header()
     
+    if show_bar:
+        print_header()
+        header_timer = machine.Timer()
+        header_timer.init(mode=machine.Timer.PERIODIC, period=5000, callback=update_header)
+        
+    checksd()
     print(f"{Fore.GREEN}Current Time and Date: {pc_rtc.time()}")
     #usb_debug("boot.py done.")
 
