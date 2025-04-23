@@ -197,7 +197,7 @@ static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
  
     }
  //spi init
-    spi_init(SPI_DISP, 25000000);
+    spi_init(SPI_DISP, 40000000);
     gpio_set_function(CLK_PIN, GPIO_FUNC_SPI);
     gpio_set_function(MOSI_PIN, GPIO_FUNC_SPI);
 
@@ -219,17 +219,15 @@ static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     channel_config_set_dreq(&config, spi_get_dreq(SPI_DISP, true));
     dma_channel_configure(st_dma, &config, &spi_get_hw(SPI_DISP)->dr, NULL, 0, false);
     gpio_put(RST_PIN, 0);
-    sleep_ms(100);
+    sleep_ms(20);
     gpio_put(RST_PIN, 1);
-    sleep_ms(150);
+    sleep_ms(10);
     command(SWRESET,0,NULL);
-    sleep_ms(150);
-    command(SLPOUT,0,NULL);
-    sleep_ms(500);
+    sleep_ms(10);
     command(0xF0,1,"\xC3");
     command(0xF0,1,"\x96");
     command(MADCTL,1,"\x48");
-    command(COLMOD,1,"\x65");//pixel format rgb565
+    command(COLMOD,1,"\x55"); //pixel format rgb565
     command(FRMCTR1,1,"\xA0");
     command(INVCTR,1,"\x00");
     command(ETMOD,1,"\xC6");
@@ -244,15 +242,13 @@ static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
 
     command(0xF0,1,"\x3C");
     command(0xF0,1,"\x69");
-    command(TEON,1,"\x00");
+    command(INVON,0,NULL);
+    command(CASET,4,"\x00\x00\x01\x3F");
+    command(RASET,4,"\x00\x00\x01\x3F");
     command(SLPOUT,0,NULL);
     sleep_ms(120);
     command(DISPON,0,NULL);
     sleep_ms(120);
-    command(INVON,0,NULL);
-    command(CASET,4,"\x00\x00\x01\x3F");
-    command(RASET,4,"\x00\x00\x01\x3F");
-
     command(RAMWR,0,NULL);
 
     //sleep_ms(100);
