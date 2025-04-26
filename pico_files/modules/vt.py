@@ -46,7 +46,7 @@ class vt(uio.IOBase):
     
     def screencapture(self):
         if self.sd:
-            filename = "{}screen_{}.raw".format(self.captureFolder, time.ticks_ms())
+            filename = "{}screen_{}.bmp".format(self.captureFolder, time.ticks_ms())
             #with open(filename, "wb") as f:
             #    f.write(self.framebuf.buffer)
             screenshot_bmp(self.framebuf.buffer, filename)
