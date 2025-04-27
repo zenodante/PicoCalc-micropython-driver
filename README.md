@@ -1,3 +1,8 @@
+# MicroPython Drivers for PicoCalc 
+<p align="center">
+  <img src="./imgs/framebuffer.jpg" alt="REPL" width="320"/>
+</p>
+
 ## :bangbang: Updates
 
 - Eigenmath is now included, bringing some actual calculator functionality back to the PicoCalc.
@@ -12,12 +17,7 @@ It is available for import in both versions, however if a lite version is wanted
 - Install instructions simplified!
 Install instructions now allow just an upload of the full /libs folder, and have been simplified to avoid confusion.
 
-# MicroPython Drivers for PicoCalc 
-<p align="center">
-  <img src="./imgs/framebuffer.jpg" alt="REPL" width="320"/>
-</p>
-
-## Build Instructions
+## :building_construction: Build Instructions
 
 ```
 Folder structure:
@@ -114,6 +114,7 @@ You can launch the built-in Python code editor by calling:
 edit("abc.py")
 ```
 ![editor](./imgs/framebuffer2.jpg)
+
 Editor is based on [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
 Now with keyword highlighting support.
 
