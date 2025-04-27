@@ -52,4 +52,4 @@ def print(*args, sep=' ', end='\n', file=sys.stdout):
     if _global_autoreset:
         text += Style.RESET_ALL
     builtins.print(text, end=end, file=file)
-    
+

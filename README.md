@@ -67,6 +67,7 @@ the filesystem in the pico module is safe, it won't be overwrite during your fir
 
 Using Thonny is the easiest method for file transfer and interaction.
 
+If the flash nuke is needed, flash as normal, however **DO NOT UNPLUG** until the on-board light flashes to indicate it is done.
 ---
 
 ## Features
@@ -112,5 +113,5 @@ The REPL and editor both run inside a VT100 terminal emulator, based on
 ## Credits
 - [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
 - [ht-deko/vt100_stm32](https://github.com/ht-deko/vt100_stm32)
-- `sdcard.py` is from the official MicroPython repository:  
-  [micropython-lib/sdcard.py](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py)
+- `sdcard.py` is from the official MicroPython repository: [micropython-lib/sdcard.py](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py)
+- `flash_nuke.uf2` is from the Raspberry Pi Documentation: [Resetting Flash Memory](https://www.raspberrypi.com/documentation/microcontrollers/pico-series.html#resetting-flash-memory)
