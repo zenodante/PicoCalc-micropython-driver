@@ -1,4 +1,13 @@
+## Updates
 
+- Eigenmath is now included, bringing some actual calculator functionality back to the PicoCalc.
+It is available for import in both versions, however if a lite version is wanted (would save about 250kb) I could compile them.
+
+Thank [@zerodante](https://github.com/zenodante) for his work on it!
+![https://github.com/zenodante/eigenmath_micropython](./imgs/eigenmath.jpg)
+
+- Install instructions simplified!
+Install instructions now allow just an upload of the full /libs folder, and have been simplified to avoid confusion.
 
 # MicroPython Drivers for PicoCalc 
 ![REPL](./imgs/framebuffer.jpg)
@@ -44,15 +53,16 @@ Supported `TARGET_BOARD` values:
 
 - Flash the compiled `.uf2` to your Pico as usual.
 - **Place only `main.py,root.py` from pico_files/root/ in the pico root directory.**
-- **Delete all existing `.py` files in `/lib`** (e.g., `fbconsole.py`, `picocalc.py`, etc.).  
-  > These modules are already *frozen* into the firmware!
+- **Upload whole `/libs` folder to the root directory as it contains nessecary libraries.**
+**Note: I may also create uf2 with libs folder frozen in automatically, with no need to copy, however I do not really like this as it removes the ability to easily tweak them on device. Request it if you want it**
+
 
 Using Thonny is the easiest method for file transfer and interaction.
 
 ---
 
 ## Features
-
+ 
 ### ✅ Keyboard Driver  
 Fully functional and tested. Works seamlessly with vt100 terminal emulator.
 
