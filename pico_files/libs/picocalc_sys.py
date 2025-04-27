@@ -14,6 +14,8 @@ import machine
 import sdcard
 import gc
 
+import errno
+
 import uasyncio as asyncio
 from micropython import const
 
@@ -85,7 +87,10 @@ def files(directory="/"):
         # List entries in the specified directory
         entries = uos.listdir(directory)
     except OSError as e:
-        print(f"Error accessing directory {directory}: {e}")
+        if e.args[0] == errno.ENOENT:
+            print(f"{Fore.RED}Directory {directory} not found.")
+        else:
+            print(f"{FORE.RED}Error Accessing Directory {directory}: {e}")
         return
     
     print(f"Contents of Directory: {directory}")
@@ -105,7 +110,7 @@ def files(directory="/"):
             else:  # File
                 files.append((entry, stat[6]))
         except OSError as e:
-            print(f"Error accessing {entry}: {e}")
+            print(f"{Fore.RED}Error accessing {entry}: {e}")
 
     # Sort directories and files
     directories.sort()
@@ -156,7 +161,7 @@ def disk():
             if path == '/sd':
                 # Indicate SD card status
                 print("SD card mounted.")
-                print("Indexing SD Card, Please Wait.")
+                print("{Fore.YELLOW}Indexing SD Card, Please Wait.")
             try:
                 fs_stat = os.statvfs(path)
                 block_size = fs_stat[1]
