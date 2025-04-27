@@ -17,34 +17,46 @@ Install instructions now allow just an upload of the full /libs folder, and have
 Folder structure:
 
 |
-|- micropython                      # Clone the MicroPython repo here
+|- micropython                     # Clone the MicroPython repo here
 |   |- ports
 |      |- rp2
-|         |- build                 # Create this build folder
-|         |- modules               # Place all py files from pico_files/modules/
+|         |- modules               # Place all py files from pico_files/modules/ if you want them added internally
 |
-|- PicoCalc-micropython-driver     # Driver modules
+|- PicoCalc-micropython            # Driver modules
 |   |- picocalcdisplay
 |   |- vtterminal
+|   |- eigenmath_micropython
 |
 |- Any additional modules (e.g., ulab, etc.)
 ```
 
-Build MicroPython as usual, while including user modules:
+First initalize the repository with:
 ```sh
-cd micropython/ports/rp2
+cd PicoCalc-micropython
+git submodule update --init --recursive
+```
+
+Then Build MicroPython as usual, while including user modules:
+```sh
+cd ../micropython/ports/rp2
 git submodule update --init --recursive
 mkdir build && cd build
 cmake .. \
-  -DUSER_C_MODULES="Path/To/PicoCalc-micropython-driver/picocalcdisplay/micropython.cmake;Path/To/PicoCalc-micropython-driver/vtterminal/micropython.cmake" \
-  -DMICROPY_BOARD=[TARGET_BOARD]
+-DUSER_C_MODULES="location/of/PicoCalc-micropython/picocalcdisplay/micropython.cmake; \
+location/of/PicoCalc-micropython/vtterminal/micropython.cmake; \
+location/of/micropython-cppmem/micropython.cmake; \
+location/of/PicoCalc-micropython/eigenmath_micropython/micropython.cmake" \
+-DMICROPY_BOARD=TARGET_BOARD
 ```
 
 Supported `TARGET_BOARD` values:
 - `RPI_PICO`
 - `RPI_PICO2`
 - `RPI_PICO2_W`
-
+IF USING HOMEBREW DEFINITIONS:
+- `PIMORONI_PICO2_PLUS`
+- `PIMORONI_PICO2_PLUS_W` 
+To use "homebrew" board definitions, copy them to you `/micropython/ports/rp2/boards` folder
 (Other boards are untested.)
 
 ---
