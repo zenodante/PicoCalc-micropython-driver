@@ -1,0 +1,3 @@
+[submodule "eigenmath_micropython"]
+	path = eigenmath_micropython
+	url = https://github.com/zenodante/eigenmath_micropython
