@@ -61,7 +61,7 @@ the filesystem in the pico module is safe, it won't be overwrite during your fir
 - picocalc_micropython_NOfilesystem_pico2.uf2
 - picocalc_micropython_NOfilesystem_pico2w.uf2
 - Flash the compiled `.uf2` to your Pico as usual.
-- **Place only `main.py,root.py` from pico_files/root/ in the pico root directory.**
+- **Place only `main.py,boot.py` from pico_files/root/ in the pico root directory.**
 - **Delete all existing `.py` files in `/lib`** (e.g., `fbconsole.py`, `picocalc.py`, etc.).  
   > These modules are already *frozen* into the firmware!
 
@@ -104,8 +104,8 @@ edit("abc.py")
 Using eigenmath
 ```python
 import eigenmath
-em = eigenmath.EigenMath(300*1024) #the internal heap size, eigenmath need A LOT OF RAM. It will be released after you delete the em
-em.statue() #show current resource statue
+em = eigenmath.EigenMath(300*1024) #the internal heap size, eigenmath needs A LOT OF RAM. It will be released after you delete the em instance
+em.status() #show current resource status
 em.run("d(sin(x),x)") #do math calculation, check the eigenmath manual for more details
 em.reset() #reset the internal sources
 
