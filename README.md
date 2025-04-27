@@ -5,7 +5,9 @@ It is available for import in both versions, however if a lite version is wanted
 
 Thank [@zerodante](https://github.com/zenodante) for his work on it!
 
-![https://github.com/zenodante/eigenmath_micropython](./imgs/eigenmath.jpg)
+<p align="center">
+  <img src="./imgs/eigenmath.jpg" alt="Eigenmath Example" width="480"/>
+</p>
 
 - Install instructions simplified!
 Install instructions now allow just an upload of the full /libs folder, and have been simplified to avoid confusion.
