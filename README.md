@@ -1,12 +1,12 @@
-# Update
+## Updates
 
-## Eigenmath is now included, bringing some actual calculator functionality back to the PicoCalc.
+- Eigenmath is now included, bringing some actual calculator functionality back to the PicoCalc.
 It is available for import in both versions, however if a lite version is wanted (would save about 250kb) I could compile them.
 
 Thank [@zerodante](https://github.com/zenodante) for his work on it!
 ![EIGENMATH](./imgs/eigenmath.jpg)
 
-## Install instructions simplified!
+- Install instructions simplified!
 Install instructions now allow just an upload of the full /libs folder, and have been simplified to avoid confusion.
 
 # MicroPython Drivers for PicoCalc 
