@@ -43,7 +43,7 @@ Supported `TARGET_BOARD` values:
 
 ## Installation
 ### With filesystem
-The uf2 file already included file system and main.py, boot.py. Just flash it and remove the usb link to the pico module, tune on the picocalc. 
+The uf2 file already included file system and main.py, boot.py. Just flash it and remove the usb link to the pico module, tune on the picocalc.(The auto reboot seems to be broken, after copy finished, the usb driver won't disappear. That's ok, let me check how to fix it >_<>)
 - **NO FILE COPY NEEDED!! The old file system will be destroyed!**
 
 - picocalc_micropython_ulab_eigenmath_withfilesystem_pico2.uf2 (you could use it with your pico 2 or pico 2w module)
@@ -100,6 +100,15 @@ pc_terminal.stopRefresh(), after wifi finish its work, use pc_terminal.recoverRe
 You can launch the built-in Python code editor by calling:
 ```python
 edit("abc.py")
+```
+Using eigenmath
+```python
+import eigenmath
+em = eigenmath.EigenMath(300*1024) #the internal heap size, eigenmath need A LOT OF RAM. It will be released after you delete the em
+em.statue() #show current resource statue
+em.run("d(sin(x),x)") #do math calculation, check the eigenmath manual for more details
+em.reset() #reset the internal sources
+
 ```
 ![editor](./imgs/framebuffer2.jpg)
 Editor is based on [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
