@@ -6,14 +6,17 @@ It is available for import in both versions, however if a lite version is wanted
 Thank [@zerodante](https://github.com/zenodante) for his work on it!
 
 <p align="center">
-  <img src="./imgs/eigenmath.jpg" alt="Eigenmath Example" width="480"/>
+  <img src="./imgs/eigenmath.jpg" alt="Eigenmath Example" width="320"/>
 </p>
 
 - Install instructions simplified!
 Install instructions now allow just an upload of the full /libs folder, and have been simplified to avoid confusion.
 
 # MicroPython Drivers for PicoCalc 
-![REPL](./imgs/framebuffer.jpg)
+<p align="center">
+  <img src="./imgs/framebuffer.jpg" alt="REPL" width="320"/>
+</p>
+
 ## Build Instructions
 
 ```
