@@ -7,12 +7,10 @@ import sys
 from battery import Bar
 from clock import PicoRTC
 # Separated imports because Micropython is super finnicky
-from picocalc_sys import clear
-from picocalc_sys import run, files
-from picocalc_sys import memory, disk
-# from picocalc_system import clear as clear
+from picocalc_sys import clear, run, files, memory, disk
 from picocalc_sys import initsd, killsd, checksd
 
+from eigenmath import EigenMath as em
 from pye import pye_edit
 
 from colorer import Fore, Back, Style, print, autoreset
