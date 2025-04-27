@@ -77,10 +77,9 @@ def run(filename):
 
 def files(directory="/"):
     """
-    Basic ls port.
-
+    Enhanced ls port.
     Inputs: directory/filepath to list files and directories in
-    Outputs: Print of all files and directories contained, along with size
+    Outputs: Prints all directories (first) and files (second) in alphabetical order.
     """
     try:
         # List entries in the specified directory
@@ -88,23 +87,39 @@ def files(directory="/"):
     except OSError as e:
         print(f"Error accessing directory {directory}: {e}")
         return
-
-    print(f"\nContents of directory: {directory}\n")
+    
+    print(f"Contents of Directory: {directory}")
+    
+    # Separate directories and files
+    directories = []
+    files = []
+    
     for entry in entries:
         try:
-            # Construct the full path
             full_path = directory.rstrip("/") + "/" + entry
             stat = uos.stat(full_path)
-            size = stat[6]
-
-            # Check if entry is a directory or a file
+            
+            # Check if entry is a directory
             if stat[0] & 0x4000:  # Directory
-                print(f"{entry:<25} <DIR>")
+                directories.append(entry)
             else:  # File
-                readable_size = human_readable_size(size)
-                print(f"{entry:<25} {readable_size:<9}")
+                files.append((entry, stat[6]))
         except OSError as e:
             print(f"Error accessing {entry}: {e}")
+
+    # Sort directories and files
+    directories.sort()
+    files.sort(key=lambda x: x[0])
+    
+    # Display directories
+    for dir_name in directories:
+        print(f"{dir_name:<25} <DIR>")
+    
+    # Display files
+    for file_name, size in files:
+        readable_size = human_readable_size(size)
+        print(f"{file_name:<25} {readable_size:<9}")
+
     return
 
 def memory():
