@@ -4,6 +4,7 @@
 It is available for import in both versions, however if a lite version is wanted (would save about 250kb) I could compile them.
 
 Thank [@zerodante](https://github.com/zenodante) for his work on it!
+
 ![https://github.com/zenodante/eigenmath_micropython](./imgs/eigenmath.jpg)
 
 - Install instructions simplified!
@@ -53,9 +54,11 @@ Supported `TARGET_BOARD` values:
 - `RPI_PICO`
 - `RPI_PICO2`
 - `RPI_PICO2_W`
+  
 IF USING HOMEBREW DEFINITIONS:
 - `PIMORONI_PICO2_PLUS`
-- `PIMORONI_PICO2_PLUS_W` 
+- `PIMORONI_PICO2_PLUS_W`
+  
 To use "homebrew" board definitions, copy them to you `/micropython/ports/rp2/boards` folder
 (Other boards are untested.)
 
