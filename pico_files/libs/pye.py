@@ -27,8 +27,6 @@ import time
 from highlighter import Highlighter
 from default_style import syntax_style
 
-import picocalc
-
 KEY_NONE = const(0x00)
 KEY_UP = const(0x0B)
 KEY_DOWN = const(0x0D)

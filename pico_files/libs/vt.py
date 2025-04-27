@@ -4,6 +4,7 @@ import vtterminal
 from micropython import const
 import time
 import uos
+from picocalc_system import screenshot_bmp
 
 from picocalc_sys import screenshot_bmp
 
@@ -45,8 +46,9 @@ class vt(uio.IOBase):
     def screencapture(self):
         if self.sd:
             filename = "{}screen_{}.bmp".format(self.captureFolder, time.ticks_ms())
-            with open(filename, "wb") as f:
-                f.write(self.framebuf.buffer)
+            #with open(filename, "wb") as f:
+            #    f.write(self.framebuf.buffer)
+            screenshot_bmp(self.framebuf.buffer, filename)
             return True
         return False
 

@@ -1,3 +1,10 @@
+"""
+Limited Colorama Port to Micropython
+Written by: Laika, 4/19/2025
+
+Allows for coloring using Fore, Back, and Style like Colorama
+Autoreset functionality is also supplied by shadowing print
+"""
 import sys
 import builtins
 
