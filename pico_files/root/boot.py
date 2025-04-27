@@ -53,3 +53,4 @@ except Exception as e:
         os.dupterm(None).write(b"[boot.py error]\n")
     except:
         pass
+    

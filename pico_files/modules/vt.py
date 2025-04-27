@@ -4,6 +4,7 @@ import vtterminal
 from micropython import const
 import time
 import uos
+from picocalc_system import screenshot_bmp
 
 sc_char_width =  const(53)
 sc_char_height =  const(40)
@@ -45,9 +46,10 @@ class vt(uio.IOBase):
     
     def screencapture(self):
         if self.sd:
-            filename = "{}screen_{}.raw".format(self.captureFolder, time.ticks_ms())
-            with open(filename, "wb") as f:
-                f.write(self.framebuf.buffer)
+            filename = "{}screen_{}.bmp".format(self.captureFolder, time.ticks_ms())
+            #with open(filename, "wb") as f:
+            #    f.write(self.framebuf.buffer)
+            screenshot_bmp(self.framebuf.buffer, filename)
             return True
         return False
 

@@ -21,6 +21,7 @@ Folder structure:
 |- Any additional modules (e.g., ulab, etc.)
 ```
 
+Copy all files from pico_files/modules/ to micropython/ports/rp2/modules/ folder
 Build MicroPython as usual, while including user modules:
 ```sh
 cd micropython/ports/rp2
@@ -41,7 +42,24 @@ Supported `TARGET_BOARD` values:
 ---
 
 ## Installation
+### With filesystem
+The uf2 file already included file system and main.py, boot.py. Just flash it and remove the usb link to the pico module, tune on the picocalc. 
+- **NO FILE COPY NEEDED!! The old file system will be destroyed!**
 
+- picocalc_micropython_ulab_eigenmath_withfilesystem_pico2.uf2 (you could use it with your pico 2 or pico 2w module)
+Included ulab, eigenmath port (https://github.com/zenodante/eigenmath_micropython), make picocalc a full function advanced calculator!
+- picocalc_micropython_withfilesystem_pico.uf2 (for pico)
+Only REPL, code editor 
+- picocalc_micropython_withfilesystem_pico2.uf2 (for pico 2)
+Only REPL, code editor 
+- picocalc_micropython_withfilesystem_pico2w.uf2 (for pico 2w)
+Only REPL, code editor 
+
+### Without filesystem uf2
+the filesystem in the pico module is safe, it won't be overwrite during your firmware upgrade.
+- picocalc_micropython_NOfilesystem_pico.uf2
+- picocalc_micropython_NOfilesystem_pico2.uf2
+- picocalc_micropython_NOfilesystem_pico2w.uf2
 - Flash the compiled `.uf2` to your Pico as usual.
 - **Place only `main.py,root.py` from pico_files/root/ in the pico root directory.**
 - **Delete all existing `.py` files in `/lib`** (e.g., `fbconsole.py`, `picocalc.py`, etc.).  

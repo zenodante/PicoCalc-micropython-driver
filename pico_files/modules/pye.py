@@ -25,7 +25,7 @@ import re
 from re import compile as re_compile
 import time
 from highlighter import Highlighter
-
+from default_style import syntax_style
 
 KEY_NONE = const(0x00)
 KEY_UP = const(0x0B)
@@ -128,6 +128,7 @@ class Editor:
         "\x11": KEY_QUIT,
         "\x1b": KEY_QUIT,
         "\n": KEY_ENTER,
+        "\r": KEY_ENTER,
         "\x13": KEY_WRITE,
         "\x06": KEY_FIND,
         "\x0e": KEY_FIND_AGAIN,
@@ -192,12 +193,8 @@ class Editor:
     place_list = []
     place_index = 0
     max_places = 20
-    syntax_style = {}
     def __init__(self, tab_size, undo_limit, io_device):
-
-        from default_style import syntax_style
-        Editor.syntax_style = syntax_style
-        self.hl = Highlighter(syntax_style=Editor.syntax_style, max_tokens=300)
+        self.hl = Highlighter(syntax_style=syntax_style, max_tokens=300)
         self.top_line = self.cur_line = self.row = self.vcol = self.col = self.margin = 0
         self.tab_size = tab_size
         self.changed = ""
@@ -217,69 +214,6 @@ class Editor:
         self.key_max = 0
         for _ in Editor.KEYMAP.keys():
             self.key_max = max(self.key_max, len(_))
-    '''
-    def highlight_line(self, line):
-        result = []
-        parts = line.split(" ")
-        in_comment = False
-        for part in parts:
-            if in_comment:
-
-                result.append(self.syntax_style.get("#", "") + part + "\x1b[0m")
-            elif part.startswith("#"):
-                in_comment = True
-                result.append(self.syntax_style.get("#", "") + part + "\x1b[0m")
-            elif part in self.syntax_style:
-                result.append(self.syntax_style[part] + part + "\x1b[0m")
-            else:
-                result.append(part)
-
-        return " ".join(result)
-    
-    def highlight_line(self, line):
-        result = []
-
-        hash_index = -1
-        in_string = False
-        string_quote = None
-
-        for i, ch in enumerate(line):
-            if ch in ('"', "'"):
-                if not in_string:
-                    in_string = True
-                    string_quote = ch
-                elif ch == string_quote:
-                    in_string = False
-            elif ch == '#' and not in_string:
-                hash_index = i
-                break
-
-        if hash_index >= 0:
-            code_part = line[:hash_index]
-            comment_part = line[hash_index:]
-        else:
-            code_part = line
-            comment_part = ""
-
-        token_pattern = r"(\s+|==|!=|<=|>=|[-+*/=<>():,])"
-        tokens = re.split(token_pattern, code_part)
-
-        for token in tokens:
-            if not token:
-                continue
-            if token.isspace():
-                result.append(token)
-            elif token in self.syntax_style:
-                result.append(self.syntax_style[token] + token + "\x1b[0m")
-            else:
-                result.append(token)
-
-    
-        if comment_part:
-            result.append(self.syntax_style.get("#", "") + comment_part + "\x1b[0m")
-
-        return ''.join(result)
-    '''
 
     def goto(self, row, col):
         self.wr(Editor.TERMCMD[0].format(row=row + 1, col=col + 1))

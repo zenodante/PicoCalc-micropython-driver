@@ -43,7 +43,7 @@ uint32_t core1_stack[CORE1_STACK_SIZE];
 
 static uint st_dma;
 static uint8_t *frameBuff;
-
+static volatile bool oneShotisDone=true;
 static volatile bool autoUpdate;
 static uint16_t lineBuffA[64];
 static uint16_t lineBuffB[64];
@@ -113,9 +113,10 @@ void setpixelLUT1(int32_t x, int32_t y,uint16_t color);
 #define FRAMEBUF_MHLSB    (3)
 #define FRAMEBUF_MHMSB    (4)
 */
+static void core1_main(void);
+static void core1_singleShot(void);
 
-
-void core1_main() {
+static void core1_main(void) {
   //multicore_lockout_victim_init();
   //static int frame = 0;
   while (1) {
@@ -130,6 +131,10 @@ void core1_main() {
   }
 }
 
+static void core1_singleShot(void){
+  pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
+  oneShotisDone=true;
+}
 
 void setpixelRGB565(int32_t x, int32_t y,uint16_t color){
   ((uint16_t *)frameBuff)[x + DISPLAY_WIDTH*y]= color;
@@ -367,13 +372,22 @@ static void command(uint8_t com, size_t len, const char *data) {
 
 
 
-static mp_obj_t pd_update(){
-    if (autoUpdate==false){
-      pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
+static mp_obj_t pd_update(mp_obj_t core){
+    int coreNum = mp_obj_get_int(core);
+    if (autoUpdate==false){//only work when autoUpdate is false
+      if (coreNum == 0){
+          pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
+      }else{
+        //single shot core 1 update
+        while(oneShotisDone==false);
+        oneShotisDone=false;
+        multicore_reset_core1();
+        multicore_launch_core1_with_stack(core1_singleShot, core1_stack, CORE1_STACK_SIZE);
+      }
     }
     return mp_const_true;
 }
-static MP_DEFINE_CONST_FUN_OBJ_0(pd_update_obj, pd_update);
+static MP_DEFINE_CONST_FUN_OBJ_1(pd_update_obj, pd_update);
 
 
 void RGB565Update(uint8_t *frameBuff,uint32_t length,const uint16_t *LUT) {
