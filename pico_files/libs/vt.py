@@ -46,14 +46,9 @@ class vt(uio.IOBase):
     def screencapture(self):
         if self.sd:
             filename = "{}screen_{}.bmp".format(self.captureFolder, time.ticks_ms())
-<<<<<<< HEAD:pico_files/libs/vt.py
-            with open(filename, "wb") as f:
-                f.write(self.framebuf.buffer)
-=======
             #with open(filename, "wb") as f:
             #    f.write(self.framebuf.buffer)
             screenshot_bmp(self.framebuf.buffer, filename)
->>>>>>> upstream/main:pico_files/modules/vt.py
             return True
         return False
 
