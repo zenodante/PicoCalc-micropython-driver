@@ -5,6 +5,8 @@ from micropython import const
 import time
 import uos
 
+from picocalc_sys import screenshot_bmp
+
 sc_char_width =  const(53)
 sc_char_height =  const(40)
 
@@ -20,11 +22,8 @@ def ensure_nested_dir(path):
         except OSError:
             uos.mkdir(current)
 
-
-
 class vt(uio.IOBase):
     
-
     def __init__(self,framebuf,keyboard,screencaptureKey=0x15,sd=None,captureFolder="/"): #ctrl+U for screen capture
         if sd != None:
             if not captureFolder.startswith("/"):
@@ -45,7 +44,7 @@ class vt(uio.IOBase):
     
     def screencapture(self):
         if self.sd:
-            filename = "{}screen_{}.raw".format(self.captureFolder, time.ticks_ms())
+            filename = "{}screen_{}.bmp".format(self.captureFolder, time.ticks_ms())
             with open(filename, "wb") as f:
                 f.write(self.framebuf.buffer)
             return True
