@@ -4,7 +4,6 @@ import vtterminal
 from micropython import const
 import time
 import uos
-from picocalc_system import screenshot_bmp
 
 from picocalc_sys import screenshot_bmp
 
