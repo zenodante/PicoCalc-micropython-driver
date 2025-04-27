@@ -26,8 +26,11 @@ from re import compile as re_compile
 import time
 from highlighter import Highlighter
 from default_style import syntax_style
+<<<<<<< HEAD:pico_files/libs/pye.py
 
 import picocalc
+=======
+>>>>>>> upstream/main:pico_files/modules/pye.py
 
 KEY_NONE = const(0x00)
 KEY_UP = const(0x0B)

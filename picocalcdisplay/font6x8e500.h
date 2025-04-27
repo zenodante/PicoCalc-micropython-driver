@@ -1,6 +1,4 @@
-/*
-  6x8 ドットフォント (SHARP PC-E500 風)
-*/
+
 
 #ifndef FONT6X8TT_H
 #define FONT6X8TT_H

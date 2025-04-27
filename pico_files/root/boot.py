@@ -43,6 +43,7 @@ try:
     pc_rtc.sync()
     pc_display = PicoDisplay(320, 320)
     pc_keyboard = PicoKeyboard()
+    # Mount SD card to /sd on boot
     sd = initsd()
     pc_terminal = vt.vt(pc_display, pc_keyboard, sd=sd)
     
@@ -117,3 +118,4 @@ except Exception as e:
         os.dupterm(None).write(b"[boot.py error]\n")
     except:
         pass
+    

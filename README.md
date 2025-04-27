@@ -81,6 +81,7 @@ To use "homebrew" board definitions, copy them to you `/micropython/ports/rp2/bo
 
 Using Thonny is the easiest method for file transfer and interaction.
 
+If the flash nuke is needed, flash as normal, however **DO NOT UNPLUG** until the on-board light flashes to indicate it is done.
 ---
 
 ## Features
@@ -114,6 +115,15 @@ You can launch the built-in Python code editor by calling:
 ```python
 edit("abc.py")
 ```
+Using eigenmath
+```python
+import eigenmath
+em = eigenmath.EigenMath(300*1024) #the internal heap size, eigenmath need A LOT OF RAM. It will be released after you delete the em
+em.statue() #show current resource statue
+em.run("d(sin(x),x)") #do math calculation, check the eigenmath manual for more details
+em.reset() #reset the internal sources
+
+```
 ![editor](./imgs/framebuffer2.jpg)
 
 Editor is based on [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
@@ -127,5 +137,5 @@ The REPL and editor both run inside a VT100 terminal emulator, based on
 ## Credits
 - [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
 - [ht-deko/vt100_stm32](https://github.com/ht-deko/vt100_stm32)
-- `sdcard.py` is from the official MicroPython repository:  
-  [micropython-lib/sdcard.py](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py)
+- `sdcard.py` is from the official MicroPython repository: [micropython-lib/sdcard.py](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py)
+- `flash_nuke.uf2` is from the Raspberry Pi Documentation: [Resetting Flash Memory](https://www.raspberrypi.com/documentation/microcontrollers/pico-series.html#resetting-flash-memory)
