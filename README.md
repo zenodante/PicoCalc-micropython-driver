@@ -1,4 +1,4 @@
-## Updates
+## :bangbang: Updates
 
 - Eigenmath is now included, bringing some actual calculator functionality back to the PicoCalc.
 It is available for import in both versions, however if a lite version is wanted (would save about 250kb) I could compile them.
@@ -62,6 +62,7 @@ IF USING HOMEBREW DEFINITIONS:
 To use "homebrew" board definitions, copy them to you `/micropython/ports/rp2/boards` folder
 (Other boards are untested.)
 
+:warning: **NOTE:** The homebrew board defitions are NOT the official Pimoroni board definitions, they are the basic Pico2 definitions tailored to work with the Pimoroni board via enabling PSRAM and the WiFi stack as nessecary. They are tested and work with the PicoCalc, but **may** lack some functionality like PIO.
 ---
 
 ## Installation
