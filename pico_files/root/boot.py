@@ -1,9 +1,11 @@
-import picocalc
-from picocalc import PicoDisplay, PicoKeyboard
+import sys
+sys.path.append('/libs')
 import machine
 import os
+
+import picocalc
+from picocalc import PicoDisplay, PicoKeyboard
 import vt
-import sys
 from battery import Bar
 from clock import PicoRTC
 # Separated imports because Micropython is super finnicky
@@ -20,8 +22,11 @@ terminal_rows = 40
 terminal_width = 53
 non_scrolling_lines = 2
 
-PICO_CALC_VERSION = "1.2.5"
+# Show menu bar?
 show_bar = True
+index = sys.version.find('MicroPython v')
+if index != -1:
+    MICROPYTHON_VERSION = sys.version[index + 13:].split()[0]
 
 try:
     machine.freq(200000000)
@@ -68,7 +73,7 @@ try:
     
     def print_header():
         if not picocalc.editing:
-            description = f"PicoCalc MicroPython (ver {PICO_CALC_VERSION})"
+            description = f"PicoCalc MicroPython (ver {MICROPYTHON_VERSION})"
             battery = picocalc.keyboard.battery()
             current_time = pc_rtc.time()
 
