@@ -75,8 +75,8 @@ To use "homebrew" board definitions, copy them to you `/micropython/ports/rp2/bo
 
 - Flash the compiled `.uf2` to your Pico as usual.
 - **Place only `main.py,root.py` from pico_files/root/ in the pico root directory.**
-- **Upload whole `/libs` folder to the root directory as it contains nessecary libraries.**
-**Note: I may also create uf2 with libs folder frozen in automatically, with no need to copy, however I do not really like this as it removes the ability to easily tweak them on device. Request it if you want it**
+- **Upload whole `/lib` folder to the root directory as it contains nessecary libraries.**
+**Note: I may also create uf2 with lib folder frozen in automatically, with no need to copy, however I do not really like this as it removes the ability to easily tweak them on device. Request it if you want it**
 
 
 Using Thonny is the easiest method for file transfer and interaction.
