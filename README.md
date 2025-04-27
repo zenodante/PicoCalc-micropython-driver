@@ -106,8 +106,8 @@ Not available yet.
 
 ## Usage Notes
 
-#### Working with WIFI on picoW/2W
-The wifi chip connect to the rp2040/2350 via spi1, which shared with LCD. As we autorefresh the lcd on core1, it is necessary to stop the auto refresh function first via the function:
+#### :warning: Working with WiFi on PicoW/2W
+Due to the WiFi chip connecting to the RP2040/2350 via SPI1, which is shared with LCD, it is necessary to stop the auto refresh function first via the function:
 pc_terminal.stopRefresh(), after wifi finish its work, use pc_terminal.recoverRefresh() to recover the LCD refreshing.
 
 You can launch the built-in Python code editor by calling:
