@@ -20,7 +20,7 @@ autoreset(True)
 
 terminal_rows = 40
 terminal_width = 53
-non_scrolling_lines = 3
+non_scrolling_lines = 2
 
 PICO_CALC_VERSION = "1.2.5"
 show_bar = True
@@ -66,7 +66,7 @@ try:
     picocalc.edit = edit
 
     os.dupterm(pc_terminal)
-    print("\n\n")
+    print("\n")
     
     def print_header():
         if not picocalc.editing:
@@ -90,7 +90,7 @@ try:
             # Print header
             print(f"\033[1;1H{line1}", end='')   # Header line 1
             print(f"\033[2;1H{line2}", end='')   # Header line 2
-            print(f"\033[3;1H{"="*terminal_width}", end='')  # Adjust the position as needed
+            # print(f"\033[3;1H{"="*terminal_width}", end='')  # Adjust the position as needed
 
             # Restore cursor position
             print("\0338", end='')
