@@ -1,5 +1,4 @@
 import sys
-sys.path.append('/libs')
 import machine
 import os
 
