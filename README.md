@@ -62,7 +62,7 @@ IF USING HOMEBREW DEFINITIONS:
 To use "homebrew" board definitions, copy them to you `/micropython/ports/rp2/boards` folder
 (Other boards are untested.)
 
-:warning: **NOTE:** The homebrew board defitions are NOT the official Pimoroni board definitions, they are the basic Pico2 definitions tailored to work with the Pimoroni board via enabling PSRAM and the WiFi stack as nessecary. They are tested and work with the PicoCalc, but **may** lack some functionality like PIO.
+:warning: **NOTE:** The homebrew board definitions are NOT the official Pimoroni board definitions, they are the basic Pico2 definitions tailored to work with the Pimoroni board via enabling PSRAM and the WiFi stack as nessecary. They are tested and work with the PicoCalc, but **may** lack some functionality like PIO.
 ---
 
 ## Installation
