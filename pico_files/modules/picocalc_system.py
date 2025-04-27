@@ -13,9 +13,10 @@ import uos
 import machine
 import sdcard
 import gc
-
+from micropython import const
 import picocalc
 from colorer import Fore, Back, Style, print, autoreset
+
 autoreset(True)
 
 def human_readable_size(size):
@@ -52,6 +53,69 @@ def prepare_for_launch(keep_vars=( "gc", "__name__")):
         if k not in keep_vars:
             del globals()[k]
     gc.collect()
+
+#provided by _burr_
+def screenshot_bmp(buffer, filename, width=320, height=320, palette=None):
+    FILE_HEADER_SIZE = const(14)
+    INFO_HEADER_SIZE = const(40)
+    PALETTE_SIZE = const(16 * 4)  # 16 colors × 4 bytes (BGRA)
+
+    # Default VT100 16-color palette
+    if palette is None:
+        palette = [
+            (0x00, 0x00, 0x00),  # 0 black
+            (0x80, 0x00, 0x00),  # 1 red
+            (0x00, 0x80, 0x00),  # 2 green
+            (0x80, 0x80, 0x00),  # 3 yellow
+            (0x00, 0x00, 0x80),  # 4 blue
+            (0x80, 0x00, 0x80),  # 5 magenta
+            (0x00, 0x80, 0x80),  # 6 cyan
+            (0xc0, 0xc0, 0xc0),  # 7 white (light gray)
+            (0x80, 0x80, 0x80),  # 8 bright black (dark gray)
+            (0xff, 0x00, 0x00),  # 9 bright red
+            (0x00, 0xff, 0x00),  # 10 bright green
+            (0xff, 0xff, 0x00),  # 11 bright yellow
+            (0x00, 0x00, 0xff),  # 12 bright blue
+            (0xff, 0x00, 0xff),  # 13 bright magenta
+            (0x00, 0xff, 0xff),  # 14 bright cyan
+            (0xff, 0xff, 0xff),  # 15 bright white
+        ]
+
+    row_bytes = ((width + 1) // 2 + 3) & ~3  # align to 4-byte boundary
+    pixel_data_size = row_bytes * height
+    file_size = FILE_HEADER_SIZE + INFO_HEADER_SIZE + PALETTE_SIZE + pixel_data_size
+    pixel_data_offset = FILE_HEADER_SIZE + INFO_HEADER_SIZE + PALETTE_SIZE
+
+    with open(filename, "wb") as f:
+        # BMP file header
+        f.write(b'BM')
+        f.write(file_size.to_bytes(4, 'little'))
+        f.write((0).to_bytes(4, 'little'))  # Reserved
+        f.write(pixel_data_offset.to_bytes(4, 'little'))
+
+        # DIB header
+        f.write(INFO_HEADER_SIZE.to_bytes(4, 'little'))
+        f.write(width.to_bytes(4, 'little'))
+        f.write(height.to_bytes(4, 'little'))
+        f.write((1).to_bytes(2, 'little'))  # Planes
+        f.write((4).to_bytes(2, 'little'))  # Bits per pixel
+        f.write((0).to_bytes(4, 'little'))  # No compression
+        f.write(pixel_data_size.to_bytes(4, 'little'))
+        f.write((0).to_bytes(4, 'little'))  # X pixels per meter
+        f.write((0).to_bytes(4, 'little'))  # Y pixels per meter
+        f.write((16).to_bytes(4, 'little'))  # Colors in palette
+        f.write((0).to_bytes(4, 'little'))  # Important colors
+
+        # Palette (BGRA)
+        for r, g, b in palette:
+            f.write(bytes([b, g, r, 0]))
+
+        # Pixel data (bottom-up)
+        for row in range(height - 1, -1, -1):
+            start = row * ((width + 1) // 2)
+            row_data = buffer[start:start + ((width + 1) // 2)]
+            f.write(row_data)
+            f.write(bytes(row_bytes - len(row_data)))  # Padding
 
 
 def run(filename):
