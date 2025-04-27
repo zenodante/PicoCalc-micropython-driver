@@ -5,6 +5,12 @@ from machine import Pin, I2C
 from collections import deque
 import time
 
+sd = None
+keyboard, display = None, None
+terminal = None
+edit = None
+usb_debug = None
+
 _REG_VER = const(0x01) # fw version
 _REG_CFG = const(0x02) # config
 _REG_INT = const(0x03) # interrupt status
@@ -59,8 +65,8 @@ class PicoDisplay(framebuf.FrameBuffer):
     def text(self,c, x0, y0, color):
         picocalcdisplay.drawTxt6x8(c,x0,y0,color)
 
-    def show(self,core=0):
-        picocalcdisplay.update(core)
+    def show(self):
+        picocalcdisplay.update()
 
 
 
@@ -206,8 +212,8 @@ class PicoKeyboard:
                             elif key == 0xB7:
                                 self.hardwarekeyBuf.extend(b'\x1b['+parameters+modifier+b'C')
                         elif key == 0x0A:
-                            #self.hardwarekeyBuf.append(ord('\r'))
-                            self.hardwarekeyBuf.append(ord('\r')) #return key
+                            self.hardwarekeyBuf.append(ord('\r'))
+                            self.hardwarekeyBuf.append(ord('\n')) #return key
                         elif key == 0xB1:  # KEY_ESC
                             self.hardwarekeyBuf.extend(b'\x1b\x1b')
                         elif key == 0xD2: #KEY_HOME
@@ -271,4 +277,3 @@ class PicoKeyboard:
 
         
         
-
