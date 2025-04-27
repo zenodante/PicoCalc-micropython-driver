@@ -3,7 +3,7 @@
 - Eigenmath is now included, bringing some actual calculator functionality back to the PicoCalc.
 It is available for import in both versions, however if a lite version is wanted (would save about 250kb) I could compile them.
 
-Thank [@zerodante](https://github.com/zenodante) for his work on it!
+        Thank [@zerodante](https://github.com/zenodante) for his work on it!
 
 <p align="center">
   <img src="./imgs/eigenmath.jpg" alt="Eigenmath Example" width="320"/>
