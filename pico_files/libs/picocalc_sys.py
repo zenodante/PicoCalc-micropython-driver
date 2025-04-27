@@ -161,7 +161,7 @@ def disk():
             if path == '/sd':
                 # Indicate SD card status
                 print("SD card mounted.")
-                print("{Fore.YELLOW}Indexing SD Card, Please Wait.")
+                print(f"{Fore.YELLOW}Indexing SD Card, Please Wait.")
             try:
                 fs_stat = os.statvfs(path)
                 block_size = fs_stat[1]
@@ -180,7 +180,7 @@ def disk():
                     print(f"Free SD space: {human_readable_free}")
 
             except OSError:
-                print(f"Unexpected error accessing filesystem at '{path}'.")
+                print(f"{Fore.RED}Unexpected error accessing filesystem at '{path}'.")
 
         else:
             if path == '/sd':
