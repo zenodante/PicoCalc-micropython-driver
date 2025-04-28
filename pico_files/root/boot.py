@@ -3,13 +3,12 @@ import machine
 import os
 
 import picocalc
-from picocalc import PicoDisplay, PicoKeyboard
+from picocalc import PicoDisplay, PicoKeyboard, PicoSD, PicoSpeaker
 import vt
 from battery import Bar
 from clock import PicoRTC
 # Separated imports because Micropython is super finnicky
 from picocalc_sys import clear, run, files, memory, disk
-from picocalc_sys import initsd, killsd, checksd
 
 from eigenmath import EigenMath as em
 from pye import pye_edit
@@ -33,6 +32,7 @@ except:
     pass
 
 def initialize_terminal():
+    global non_scrolling_lines, terminal_rows
     print(f"\033[{non_scrolling_lines + 1};{terminal_rows}r", end='')
     
 try:
@@ -43,8 +43,12 @@ try:
     pc_display = PicoDisplay(320, 320)
     pc_keyboard = PicoKeyboard()
     # Mount SD card to /sd on boot
-    sd = initsd()
-    pc_terminal = vt.vt(pc_display, pc_keyboard, sd=sd)
+    pc_sd = PicoSD()
+    pc_sd.mount()
+    # Activate both speakers on boot.
+    pc_speaker_L = PicoSpeaker(26)
+    pc_speaker_R = PicoSpeaker(27)
+    pc_terminal = vt.vt(pc_display, pc_keyboard, sd=pc_sd())
     
     _usb = sys.stdout  # 
 
@@ -59,7 +63,7 @@ try:
     picocalc.display = pc_display
     picocalc.keyboard = pc_keyboard
     picocalc.terminal = pc_terminal
-    picocalc.sd = sd
+    picocalc.sd = pc_sd
 
     def edit(*args, tab_size=4, undo=50):
         #dry the key buffer before editing
@@ -106,7 +110,7 @@ try:
         header_timer = machine.Timer()
         header_timer.init(mode=machine.Timer.PERIODIC, period=5000, callback=update_header)
         
-    checksd()
+    pc_sd.check_mount()
     print(f"{Fore.GREEN}Current Time and Date: {pc_rtc.time()}")
     #usb_debug("boot.py done.")
 

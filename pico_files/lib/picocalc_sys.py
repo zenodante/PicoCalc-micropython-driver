@@ -186,55 +186,6 @@ def disk():
             if path == '/sd':
                 print("No SD Card Mounted.")
 
-def initsd():
-    """
-    SD Card mounting utility for PicoCalc.
-    Utility is specifically for the PicoCalc's internal SD card reader, as it is tuned for its pins.
-
-    Inputs: None
-    Outputs: None (Mounts SD card if it is present)
-    """
-    if picocalc.sd is None:
-        try:
-            picocalc.sd = sdcard.SDCard(
-                          machine.SPI(0,
-                          baudrate=1000000,
-                          polarity=0,
-                          phase=0,
-                          sck=18,
-                          mosi=19,
-                          miso=16), machine.Pin(17))
-            # Mount filesystem
-            uos.mount(picocalc.sd, "/sd")
-            print("SD card mounted successfully.")
-        except Exception as e:
-            print(f"Failed to mount SD card: {e}")
-            picocalc.sd = None
-    else:
-        print("SD card already mounted.")
-    return
-
-def killsd(sd_mnt="/sd"):
-    """
-    SD Card unmounting utility for PicoCalc.
-    Could technically function on any device with uos, since it uses the mount point.
-
-    Inputs: Filepath to SD mount point
-    Output: None, unmounts SD
-    """
-    if picocalc.sd is not None:
-        try:
-            uos.umount(sd_mnt)
-            picocalc.sd = None
-        except Exception as e:
-            print(f"Failed to unmount SD card: {e}")
-    return
-
-def checksd(sd_mnt="/sd"):
-    if is_dir(sd_mnt):
-        print(f"{Fore.GREEN}SD Mounted Successfully.")
-    return
-
 #provided by _burr_
 def screenshot_bmp(buffer, filename, width=320, height=320, palette=None):
     FILE_HEADER_SIZE = const(14)
@@ -309,49 +260,3 @@ def scan():
 
       for device in devices:
         print(f"Decimal: {device:3} | Hex: {hex(device)}")
-
-async def pwm(pin, frequency, duration):
-    """
-    Generate PWM of specific frequency for duration using pin
-
-    Inputs:
-        Pin: PWM capable pin to be used
-        Frequency: Tone frequency
-        Duration: Tone duration
-    Outputs:
-        PWM on capable pin
-        (Noise on speakers)
-
-    Note:
-        GPIO26 = left speaker
-        GPIO27 = right speaker
-    """
-    pwm_pin = machine.Pin(pin)
-    pwm = machine.PWM(pwm_pin)
-    pwm.freq(frequency)
-    pwm.duty_u16(32768)         # (value between 0 and 65535)
-    await asyncio.sleep(duration)
-    pwm.deinit()
-
-async def pwm_sequence(pin_numbers, frequencies, durations):
-    # Check if all lists have the same length
-    if not (len(pin_numbers) == len(frequencies) == len(durations)):
-        raise ValueError("All input lists must have the same length")
-
-    # Iterate through each pin, frequency, and duration
-    for pin, freq, dur in zip(pin_numbers, frequencies, durations):
-        await pwm(pin, freq, dur)
-
-# Could potentially be used to play different tones through each speaker concurrently
-async def gather_dual_pwm(task1, task2):
-    await asyncio.gather(task1, task2)
-# dual_pwm, play_tone, and play_tones should literally never be run in event loops as nested event loops would be bad
-# specifically asyncio.run should be never used in event loops, instead use the non wrapper functions and await pwm or pwm_sequence directly
-async def dual_pwm(task1, task2):
-    asyncio.run(gather_dual_pwm(task1, task2))
-
-def play_tone(pin, frequency, duration):
-    asyncio.run(pwm(pin, frequency, duration))
-
-def play_tones(pins, frequencies, durations):
-    asyncio.run(pwm_sequence(pins, frequencies, durations))
