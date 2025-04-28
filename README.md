@@ -102,13 +102,18 @@ You can launch the built-in Python code editor by calling:
 edit("abc.py")
 ```
 Using eigenmath
+
+I initialize Eigenmath early during system startup because it requires a contiguous 300kB block from the MicroPython heap. If we delay this allocation until later stages of the boot process, heap fragmentation may prevent us from obtaining such a large continuous memory region. Therefore, we allocate it at the beginning. So there is a special boot.py in root_eigenmath folder. If you are using the picocalc_micropython_ulab_eigenmath_withfilesystem_pico2.uf2, it is already included.
 ```python
-import eigenmath
-em = eigenmath.EigenMath(300*1024) #the internal heap size, eigenmath needs A LOT OF RAM. It will be released after you delete the em instance
+#import eigenmath #not necessary, init in the boot
+#em = eigenmath.EigenMath(300*1024) #the internal heap size, eigenmath needs A LOT OF RAM. It will be released after you delete the em instance
 em.status() #show current resource status
 em.run("d(sin(x),x)") #do math calculation, check the eigenmath manual for more details
 em.reset() #reset the internal sources
 
+#if you don't need it anymore
+del builtins.em #del the eigenmath from root
+gc.collect()
 ```
 ![editor](./imgs/framebuffer2.jpg)
 Editor is based on [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
