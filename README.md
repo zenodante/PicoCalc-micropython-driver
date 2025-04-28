@@ -85,8 +85,8 @@ Fully functional and tested. Works seamlessly with vt100 terminal emulator.
 The Data is in raw type. For default 16 color framebuff copy, it is 50kB each. Left pixel in high 4 bit.
 Standard vt 100 16 color map may use to rebuild the image. I will upload a python script to convert it.
 
-### 🔲 Speaker Driver  
-Not available yet.
+### ✅ Speaker Driver  
+Enabled by LaikaSpaceDawg!
 
 
 ---
