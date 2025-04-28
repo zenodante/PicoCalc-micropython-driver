@@ -1,10 +1,14 @@
 import framebuf
 import picocalcdisplay
 from micropython import const
-from machine import Pin, I2C
+import machine
+from machine import Pin, I2C, PWM, SPI
 from collections import deque
 import time
+import sdcard
+import uos
 
+from colorer import Fore, Back, Style, print, autoreset
 sd = None
 keyboard, display = None, None
 terminal = None
@@ -67,11 +71,6 @@ class PicoDisplay(framebuf.FrameBuffer):
 
     def show(self):
         picocalcdisplay.update()
-
-
-
-
-
 
 class PicoKeyboard:
     def __init__(self,sclPin=7,sdaPin=6,address=0x1f):
@@ -240,12 +239,6 @@ class PicoKeyboard:
                         self.isCtrl = False
                     elif key == 0xa1:
                         self.isAlt = False   
-      
-                    
-                        
-                
-                
-                
                 #self.hardwarekeyBuf.append(key[:])
         #now deside how many keys to send to buf
         requestedkeys = len(buf)
@@ -274,6 +267,200 @@ class PicoKeyboard:
         else:
             return (requestedkeys-keysLeft)
 
+class PicoSD:
+    """
+    Example class for SD card configuration and management by LaikaSpaceDawg.
+    This class handles the mounting and unmounting of the SD card, as well as checking its status.
+    Also demonstrates basic uColorama usage for colored output.
+    """
+    def __init__(self, mount_point="/sd", sck_pin=18, mosi_pin=19, miso_pin=16, cs_pin=17, spi_bus=0, baudrate=1000000):
+        """
+        Initialize SD card configuration.
 
+        :param mount_point: Directory to mount the SD card to.
+        :param sck_pin: GPIO pin connected to SCK.
+        :param mosi_pin: GPIO pin connected to MOSI.
+        :param miso_pin: GPIO pin connected to MISO.
+        :param cs_pin: GPIO pin connected to CS.
+        :param spi_bus: SPI bus to be used.
+        :param baudrate: SPI communication speed.
+        """
+        self.mount_point = mount_point
+        self.sck_pin = sck_pin
+        self.mosi_pin = mosi_pin
+        self.miso_pin = miso_pin
+        self.cs_pin = cs_pin
+        self.spi_bus = spi_bus
+        self.baudrate = baudrate
+        self.sd = None
+
+        # Attempt to mount the SD card on initialization
+        self.mount()
+
+    def __call__(self):
+        """Allow the SDManager object to be called like a function to get the SDCard object."""
+        if self.sd:
+            return self.sd
+    
+    def mount(self):
+        """
+        Mount the SD card.
+        """
+        if self.sd is None:
+            try:
+                self.sd = sdcard.SDCard(
+                    machine.SPI(self.spi_bus, baudrate=self.baudrate, polarity=0, phase=0,
+                                sck=machine.Pin(self.sck_pin),
+                                mosi=machine.Pin(self.mosi_pin),
+                                miso=machine.Pin(self.miso_pin)),
+                    machine.Pin(self.cs_pin)
+                )
+                uos.mount(self.sd, self.mount_point)
+                print(f"{Fore.GREEN}SD card mounted successfully at", self.mount_point)
+            except Exception as e:
+                print(f"{Fore.RED}Failed to mount SD card: {e}")
+                self.sd = None
+        else:
+            print(f"{Fore.YELLOW}SD card is already mounted.")
+
+    def unmount(self):
+        """
+        Unmount the SD card.
+        """
+        if self.sd is not None:
+            try:
+                uos.umount(self.mount_point)
+                self.sd = None
+                print(f"SD card unmounted from {self.mount_point}.")
+            except Exception as e:
+                print(f"{Fore.RED}Failed to unmount SD card: {e}")
+        else:
+            print("No SD card is mounted to unmount.")
+
+    def check_mount(self):
+        """
+        Check if the SD card is mounted.
+        """
+        try:
+            if uos.stat(self.mount_point):
+                print(f"{Fore.GREEN}SD card is mounted at {self.mount_point}.")
+        except OSError:
+            print(f"{Fore.RED}No SD card is mounted at {self.mount_point}.")
+
+# Frequency definitions for musical notes
+NOTE_FREQUENCIES = {
+    'B1': 31, 'C2': 33, 'CS2': 35, 'D2': 37, 'DS2': 39, 'E2': 41, 'F2': 44, 'FS2': 46,
+    'G2': 49, 'GS2': 52, 'A2': 55, 'AS2': 58, 'B2': 62, 'C3': 65, 'CS3': 69, 'D3': 73,
+    'DS3': 78, 'E3': 82, 'F3': 87, 'FS3': 93, 'G3': 98, 'GS3': 104, 'A3': 110, 'AS3': 117,
+    'B3': 123, 'C4': 131, 'CS4': 139, 'D4': 147, 'DS4': 156, 'E4': 165, 'F4': 175,
+    'FS4': 185, 'G4': 196, 'GS4': 208, 'A4': 220, 'AS4': 233, 'B4': 247, 'C5': 262,
+    'CS5': 277, 'D5': 294, 'DS5': 311, 'E5': 330, 'F5': 349, 'FS5': 370, 'G5': 392,
+    'GS5': 415, 'A5': 440, 'AS5': 466, 'B5': 494, 'C6': 523, 'CS6': 554, 'D6': 587,
+    'DS6': 622, 'E6': 659, 'F6': 698, 'FS6': 740, 'G6': 784, 'GS6': 831, 'A6': 880,
+    'AS6': 932, 'B6': 988, 'C7': 1047, 'CS7': 1109, 'D7': 1175, 'DS7': 1245, 'E7': 1319,
+    'F7': 1397, 'FS7': 1480, 'G7': 1568, 'GS7': 1661, 'A7': 1760, 'AS7': 1865, 'B7': 1976,
+    'C8': 2093, 'CS8': 2217, 'D8': 2349, 'DS8': 2489, 'E8': 2637, 'F8': 2794, 'FS8': 2960,
+    'G8': 3136, 'GS8': 3322, 'A8': 3520, 'AS8': 3729, 'B8': 3951, 'C9': 4186, 'CS9': 4435,
+    'D9': 4699, 'DS9': 4978, 'P': 0  # 'P' is for pause
+}
+
+class PicoSpeaker:
+    def __init__(self, pin_number):
+        self.buzzer_pin = Pin(pin_number)
+        self.pwm = None
+
+    def tone(self, tone, duration):
+        """
+        Play a tone given by a note string from NOTE_FREQUENCIES or directly as a frequency number.
         
+        :param tone: Either a note string ("A4", "C5", etc.) or a frequency in Hz.
+        :param duration: Duration in seconds for which to play the tone.
+        Written by @LaikaSpaceDawg (https://github.com/LaikaSpaceDawg/PicoCalc-micropython)
+        """
+        frequency = 0
         
+        if isinstance(tone, str) and tone.upper() in NOTE_FREQUENCIES:
+            frequency = NOTE_FREQUENCIES[tone.upper()]
+        elif isinstance(tone, (int, float)):
+            frequency = tone
+            
+        if frequency > 0:
+            self.pwm = PWM(self.buzzer_pin)
+            self.pwm.freq(frequency)
+            self.pwm.duty_u16(32768)
+            time.sleep(duration * 0.9)
+        if self.pwm:
+            self.pwm.deinit()
+        time.sleep(duration * 0.1)
+
+    def tones(self, notes_durations):
+        """
+        Play a sequence of notes with their respective durations.
+        
+        :param notes_durations: List of tuples where each tuple contains a note and its duration.
+                                e.g., [("A4", 0.5), ("C5", 0.5)]
+        """
+        for tone, duration in notes_durations:
+            self.tone(tone, duration)
+
+    def rtttl(self, text):
+        """ 
+        Convert RTTTL formatted string into frequency-duration pairs. 
+        Provided by: @GraphicHealer (https://github.com/GraphicHealer/MicroPython-RTTTL)
+        """
+        try:
+            title, defaults, song = text.split(':')
+            d, o, b = defaults.split(',')
+            d = int(d.split('=')[1])
+            o = int(o.split('=')[1])
+            b = int(b.split('=')[1])
+            whole = (60000 / b) * 4
+            noteList = song.split(',')
+        except:
+            return 'Please enter a valid RTTTL string.'
+
+        notes = 'abcdefgp'
+        outList = []
+
+        for note in noteList:
+            index = 0
+            for i in note:
+                if i in notes:
+                    index = note.find(i)
+                    break
+
+            length = note[0:index]
+            value = note[index:].replace('#', 's').replace('.', '')
+
+            if not any(char.isdigit() for char in value):
+                value += str(o)
+            if 'p' in value:
+                value = 'p'
+
+            if length == '':
+                length = d
+            else:
+                length = int(length)
+
+            length = whole / length
+
+            if '.' in note:
+                length += length / 2
+
+            outList.append((NOTE_FREQUENCIES[value.upper()], length))
+
+        return outList
+
+    def play_rtttl(self, rtttl_string):
+        """
+        Play RTTTL formatted song.
+        Provided by: @GraphicHealer (https://github.com/GraphicHealer/MicroPython-RTTTL)
+        """
+        tune = self.rtttl(rtttl_string)
+
+        if type(tune) is not list:
+            print(tune)
+            return
+
+        for freqc, msec in tune:
+            self._play_frequency(freqc, msec * 0.001)

@@ -1,25 +1,24 @@
 import picocalc
-from picocalc import PicoDisplay, PicoKeyboard
+from picocalc import PicoDisplay, PicoKeyboard, PicoSD, PicoSpeaker
 import os
 import vt
 import sys
 # Separated imports because Micropython is super finnicky
 # Separated imports because Micropython is super finnicky
-from picocalc_system import run, files
-from picocalc_system import memory, disk
-# from picocalc_system import clear as clear
-from picocalc_system import initsd, killsd, checksd
+from picocalc_system import run, files, memory, disk
 
 from pye import pye_edit
 import builtins
-
 
 try:
     pc_display = PicoDisplay(320, 320)
     pc_keyboard = PicoKeyboard()
     # Mount SD card to /sd on boot
-    sd = initsd()
-    pc_terminal = vt.vt(pc_display, pc_keyboard, sd=sd)
+    pc_sd = PicoSD()
+    pc_sd.mount()
+    pcs_L = PicoSpeaker(26)
+    pcs_R = PicoSpeaker(27)
+    pc_terminal = vt.vt(pc_display, pc_keyboard, sd=pc_sd())
     
     _usb = sys.stdout  # 
 
@@ -34,7 +33,7 @@ try:
     picocalc.display = pc_display
     picocalc.keyboard = pc_keyboard
     picocalc.terminal = pc_terminal
-    picocalc.sd = sd
+    picocalc.sd = pc_sd
 
     def edit(*args, tab_size=2, undo=50):
         #dry the key buffer before editing
@@ -43,7 +42,7 @@ try:
     picocalc.edit = edit
 
     os.dupterm(pc_terminal)
-    checksd()
+    pc_sd.check_mount()
     #usb_debug("boot.py done.")
 
 except Exception as e:
