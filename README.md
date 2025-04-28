@@ -118,8 +118,8 @@ edit("abc.py")
 Using eigenmath
 ```python
 import eigenmath
-em = eigenmath.EigenMath(300*1024) #the internal heap size, eigenmath need A LOT OF RAM. It will be released after you delete the em
-em.statue() #show current resource statue
+em = eigenmath.EigenMath(300*1024) #the internal heap size, eigenmath needs A LOT OF RAM. It will be released after you delete the em instance
+em.status() #show current resource status
 em.run("d(sin(x),x)") #do math calculation, check the eigenmath manual for more details
 em.reset() #reset the internal sources
 
