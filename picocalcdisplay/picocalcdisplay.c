@@ -177,7 +177,7 @@ static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     int32_t colorType = mp_obj_get_int(color_type);
     currentTextY = 8;
     currentTextX = 6;
-    currentTextTable=font6x8tt;
+    currentTextTable=CP437_display;
     switch (colorType){
       case 1: //565
         pColorUpdate = RGB565Update;
@@ -252,6 +252,7 @@ static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     command(RASET,4,"\x00\x00\x01\x3F");
     command(SLPOUT,0,NULL);
     sleep_ms(120);
+    pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
     command(DISPON,0,NULL);
     sleep_ms(120);
     command(RAMWR,0,NULL);
