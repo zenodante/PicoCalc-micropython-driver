@@ -28,7 +28,7 @@ def render_mandelbrot(scale=1024, center_x=0, center_y=0):
     span_y = (3 * FIXED_ONE) * FIXED_ONE // scale
     max_iter = 16
 
-    for y in range(320):
+    for y in range(312):
         cy = center_y - (span_y // 2) + (y * span_y) // 320
         for x in range(320):
             cx = center_x - (span_x // 2) + (x * span_x) // 320
