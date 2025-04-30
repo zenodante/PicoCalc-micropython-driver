@@ -194,12 +194,11 @@ static MP_DEFINE_CONST_FUN_OBJ_1(pd_resetLUT_obj, pd_resetLUT);
 
 
 static mp_obj_t pd_getLUTview(void) {
-  return mp_obj_new_memoryview(                  // create memoryview obj
-      MP_OBJ_NEW_QSTR(MP_QSTR_uint16),           // optional if using cast on Python side
-      MP_MEMORYVIEW_READ | MP_MEMORYVIEW_WRITE,  // read/write access
-      (void *)LUT,
-      sizeof(LUT)
-  );
+  
+    return mp_obj_new_memoryview(
+        mp_obj_new_bytearray_by_ref(256*sizeof(uint16_t), (void *)LUT)
+    );
+
 }
 static MP_DEFINE_CONST_FUN_OBJ_0(pd_getLUTview_obj, pd_getLUTview);
 
