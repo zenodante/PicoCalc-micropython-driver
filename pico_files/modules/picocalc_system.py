@@ -19,9 +19,6 @@ from colorer import Fore, Back, Style, print, autoreset
 
 autoreset(True)
 
-import picocalc
-from colorer import Fore, Back, Style, print, autoreset
-autoreset(True)
 
 def human_readable_size(size):
     """
