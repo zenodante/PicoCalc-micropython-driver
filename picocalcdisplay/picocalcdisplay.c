@@ -285,11 +285,11 @@ static mp_obj_t drawTxt6x8(mp_uint_t n_args, const mp_obj_t *args){
   for (; *str; ++str) {
       // get char and make sure its in range of font
     int chr = *(uint8_t *)str;
-    if (chr < 32 ) {
+    if (chr < 16 ) {
       chr = 32;
     }
       // get char data
-    const uint8_t *chr_data = &currentTextTable[(chr - 32) * currentTextY];
+    const uint8_t *chr_data = &currentTextTable[(chr - 16) * currentTextY];
       // loop over char data
     y = y0;
       
