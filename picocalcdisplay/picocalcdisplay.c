@@ -174,11 +174,35 @@ void setpixelLUT1(int32_t x, int32_t y,uint16_t color){
   ((uint8_t *)frameBuff)[index] = (((uint8_t *)frameBuff)[index] & ~(0x01 << offset)) | ((color != 0) << offset);
 }
 
-static mp_obj_t pd_resetLUT(void){
-  memcpy(LUT, (uint16_t *)defaultLUT, sizeof(defaultLUT));
+static mp_obj_t pd_resetLUT(mp_obj_t index){
+  uint32_t lutIdx = mp_obj_get_int(index); 
+  switch(lutIdx){
+    case 0: // Default LUT
+      memcpy(LUT, (uint16_t *)defaultLUT, 256 * sizeof(uint16_t));
+      break;
+    case 1: // Pico-8 LUT
+      memcpy(LUT, (uint16_t *)pico8LUT, 16 * sizeof(uint16_t));
+      break;
+    default:
+      mp_raise_ValueError("Invalid LUT index.");
+      break;
+  }
   return mp_const_none;
 }
-static MP_DEFINE_CONST_FUN_OBJ_0(pd_resetLUT_obj, pd_resetLUT);
+static MP_DEFINE_CONST_FUN_OBJ_1(pd_resetLUT_obj, pd_resetLUT);
+
+
+
+static mp_obj_t pd_getLUTview(void) {
+  return mp_obj_new_memoryview(                  // create memoryview obj
+      MP_OBJ_NEW_QSTR(MP_QSTR_uint16),           // optional if using cast on Python side
+      MP_MEMORYVIEW_READ | MP_MEMORYVIEW_WRITE,  // read/write access
+      (void *)LUT,
+      sizeof(LUT)
+  );
+}
+static MP_DEFINE_CONST_FUN_OBJ_0(pd_getLUTview_obj, pd_getLUTview);
+
 
 static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     mp_buffer_info_t buf_info;
@@ -332,16 +356,18 @@ static MP_DEFINE_CONST_FUN_OBJ_VAR_BETWEEN(drawTxt6x8_obj, 4, 4, drawTxt6x8);
 
 
 
-static mp_obj_t setLUT(mp_obj_t LUT_obj){
+static mp_obj_t pd_setLUT(mp_obj_t LUT_obj){
     mp_buffer_info_t buf_info;
     mp_get_buffer_raise(LUT_obj, &buf_info, MP_BUFFER_READ);
     size_t bufLen = buf_info.len;
-    
+    if (bufLen > sizeof(LUT)) {
+        mp_raise_ValueError("LUT buffer too large, max size is 256 colors (512 bytes)");
+    }
     memcpy(LUT,buf_info.buf,bufLen* sizeof(uint16_t));
     
     return mp_const_true;
 }
-static MP_DEFINE_CONST_FUN_OBJ_1(setLUT_obj, setLUT);
+static MP_DEFINE_CONST_FUN_OBJ_1(setLUT_obj, pd_setLUT);
 
 static mp_obj_t startAutoUpdate(void){
   autoUpdate = true;
@@ -785,6 +811,7 @@ static const mp_rom_map_elem_t picocalcdisplay_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_stopAutoUpdate), MP_ROM_PTR(&stopAutoUpdate_obj) },
     { MP_ROM_QSTR(MP_QSTR_drawTxt6x8), MP_ROM_PTR(&drawTxt6x8_obj) },
     { MP_ROM_QSTR(MP_QSTR_resetLUT), MP_ROM_PTR(&pd_resetLUT_obj) },
+    { MP_ROM_QSTR(MP_QSTR_getLUTview), MP_ROM_PTR(&pd_getLUTview_obj) },
 };
 static MP_DEFINE_CONST_DICT(picocalcdisplay_globals, picocalcdisplay_globals_table);
 
