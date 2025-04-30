@@ -62,6 +62,7 @@ the filesystem in the pico module is safe, it won't be overwrite during your fir
 - picocalc_micropython_NOfilesystem_pico2w.uf2
 - Flash the compiled `.uf2` to your Pico as usual.
 - **Place only `main.py,boot.py` from pico_files/root/ in the pico root directory.**
+- Copy '/examples/' to pico root (if you want)
 - **Delete all existing `.py` files in `/lib`** (e.g., `fbconsole.py`, `picocalc.py`, etc.).  
   > These modules are already *frozen* into the firmware!
 
@@ -97,11 +98,25 @@ Enabled by LaikaSpaceDawg!
 The wifi chip connect to the rp2040/2350 via spi1, which shared with LCD. As we autorefresh the lcd on core1, it is necessary to stop the auto refresh function first via the function:
 pc_terminal.stopRefresh(), after wifi finish its work, use pc_terminal.recoverRefresh() to recover the LCD refreshing.
 
+### Internal code editor
 You can launch the built-in Python code editor by calling:
 ```python
 edit("abc.py")
 ```
-Using eigenmath
+![editor](./imgs/framebuffer2.jpg)
+Editor is based on [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
+Now with keyword highlighting support.
+### run examples
+Copy examples folder under pico_files to your pico module root. 
+Run it via command 
+```python
+run('/examples/rotation.py')
+```
+![nice picture made by ポテト](./imgs/picocalc_example.png)
+
+
+
+### Using eigenmath
 
 I initialize Eigenmath early during system startup because it requires a contiguous 300kB block from the MicroPython heap. If we delay this allocation until later stages of the boot process, heap fragmentation may prevent us from obtaining such a large continuous memory region. Therefore, we allocate it at the beginning. So there is a special boot.py in root_eigenmath folder. If you are using the picocalc_micropython_ulab_eigenmath_withfilesystem_pico2.uf2, it is already included.
 ```python
@@ -115,9 +130,7 @@ em.reset() #reset the internal sources
 del builtins.em #del the eigenmath from root
 gc.collect()
 ```
-![editor](./imgs/framebuffer2.jpg)
-Editor is based on [robert-hh/Micropython-Editor](https://github.com/robert-hh/Micropython-Editor)  
-Now with keyword highlighting support.
+
 
 The REPL and editor both run inside a VT100 terminal emulator, based on  
 [ht-deko/vt100_stm32](https://github.com/ht-deko/vt100_stm32), with bug fixes and additional features.
