@@ -52,7 +52,13 @@ void (*pSetPixel)(int32_t,int32_t,uint16_t);
 static uint8_t currentTextY;
 static uint8_t currentTextX;
 static const uint8_t *currentTextTable;
-static uint16_t LUT[256] = {
+static uint16_t LUT[256] = {0}; // Look-Up Table for 4bpp to RGB565 conversion
+
+static const uint16_t pico8LUT[16]={
+    0x0000, 0x4A19, 0x2A79, 0x2A04, 0x86AA, 0xA95A, 0x18C6, 0x9DFF, 
+    0x09F8, 0x00FD, 0x64FF, 0x2607, 0x7F2D, 0xB383, 0xB5FB, 0x75FE
+}
+static const uint16_t defaultLUT[256] = {
     //0x0000, 0x4A19, 0x2A79, 0x2A04, 0x86AA, 0xA95A, 0x18C6, 0x9DFF, 
     //0x09F8, 0x00FD, 0x64FF, 0x2607, 0x7F2D, 0xB383, 0xB5FB, 0x75FE
     0x0000, 0x0080, 0x0004, 0x0084, 0x1000, 0x1080, 0x1004, 0x18C6,
@@ -168,6 +174,12 @@ void setpixelLUT1(int32_t x, int32_t y,uint16_t color){
   ((uint8_t *)frameBuff)[index] = (((uint8_t *)frameBuff)[index] & ~(0x01 << offset)) | ((color != 0) << offset);
 }
 
+static mp_obj_t pd_resetLUT(void){
+  memcpy(LUT, (uint16_t *)defaultLUT, sizeof(defaultLUT));
+  return mp_const_none;
+}
+static MP_DEFINE_CONST_FUN_OBJ_0(pd_resetLUT_obj, pd_resetLUT);
+
 static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     mp_buffer_info_t buf_info;
     mp_get_buffer_raise(fb_obj, &buf_info, MP_BUFFER_READ);
@@ -175,6 +187,7 @@ static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     autoUpdate = mp_obj_is_true(autoR);
 
     int32_t colorType = mp_obj_get_int(color_type);
+    pd_resetLUT();
     currentTextY = 8;
     currentTextX = 6;
     currentTextTable=CP437_display;
@@ -269,6 +282,10 @@ static mp_obj_t pd_init(mp_obj_t fb_obj, mp_obj_t color_type, mp_obj_t autoR){
     return mp_const_true;
 }
 static MP_DEFINE_CONST_FUN_OBJ_3(pd_init_obj, pd_init);
+
+
+
+
 
 
 static mp_obj_t drawTxt6x8(mp_uint_t n_args, const mp_obj_t *args){
@@ -767,6 +784,7 @@ static const mp_rom_map_elem_t picocalcdisplay_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_startAutoUpdate), MP_ROM_PTR(&startAutoUpdate_obj) },
     { MP_ROM_QSTR(MP_QSTR_stopAutoUpdate), MP_ROM_PTR(&stopAutoUpdate_obj) },
     { MP_ROM_QSTR(MP_QSTR_drawTxt6x8), MP_ROM_PTR(&drawTxt6x8_obj) },
+    { MP_ROM_QSTR(MP_QSTR_resetLUT), MP_ROM_PTR(&pd_resetLUT_obj) },
 };
 static MP_DEFINE_CONST_DICT(picocalcdisplay_globals, picocalcdisplay_globals_table);
 

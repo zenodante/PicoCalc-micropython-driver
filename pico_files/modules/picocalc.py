@@ -59,6 +59,8 @@ class PicoDisplay(framebuf.FrameBuffer):
         super().__init__(self.buffer, self.width, self.height, color_type)
         picocalcdisplay.init(self.buffer,color_type,True)
 
+    def restLUT(self):
+        picocalcdisplay.resetLUT()
         
     def stopRefresh(self):
         picocalcdisplay.stopAutoUpdate()
