@@ -1,7 +1,7 @@
 from picocalc import display, terminal,keyboard
 import time
 import micropython
-
+display.switchPredefinedLUT('pico8')
 MAX_ITER = 16
 
 # fixed-point
@@ -57,6 +57,7 @@ for zoom in range(1024, 8192, 64):  # from 1x to 8x zoom
 #terminal.rd()
 del temp,MAX_ITER, FIXED_SHIFT, FIXED_ONE, render_mandelbrot
 display.fill(0) #clean the screen
+display.restLUT()
 terminal.wr("\x1b[2J\x1b[H")#move the cursor to the top, and clear the terminal buffer
 #terminal.recoverRefresh()
 terminal.wr("\x1b[?25h")  # show cursor
