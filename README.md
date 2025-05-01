@@ -131,6 +131,75 @@ del builtins.em #del the eigenmath from root
 gc.collect()
 ```
 
+## color and screen frame buffer
+
+
+
+### Accessing the Display
+
+The screen is exposed via `picocalc.display`, which is an instance of the `PicoDisplay` class (a subclass of `framebuf`). You can use **all** standard `framebuf` methods to draw on it.
+
+### VT100 Emulator Mode
+
+- Runs in **4-bit color (16 colors)** mode to save limited RAM (≈50 KB).
+- Uses an **internal color lookup table (LUT)** to map logical VT100 colors to the actual RGB565 values sent to the panel.
+
+### Color Lookup Table (LUT)
+
+- **Reset to the default VT100 palette**  
+  ```python
+  picocalc.display.resetLUT()
+  ```
+- **Switch to a predefined LUT**  
+  ```python
+  picocalc.display.switchPredefinedLUT("name")
+  ```  
+  Available presets: `"vt100"`, `"pico8"` (more coming soon).
+
+### Inspecting and Modifying the LUT
+
+- **Get the current LUT**  
+  ```python
+  lut = picocalc.display.getLUT()
+  ```  
+  Returns a 256-entry, big-endian 16-bit array you can read from or write to directly.
+
+- **Note on color format**  
+  - The display expects **RGB565** values.  
+  - Because of SPI byte‐order, you must **swap high/low bytes** when writing back to the LUT.
+
+- **Set a custom LUT**  
+  ```python
+  picocalc.display.setLUT(custom_array)
+  ```  
+  Accepts up to 256 16-bit elements to override the existing table.
+
+> **Example usage:** see `examples/mandelbrot.py`.
+
+### Core Usage & Refresh Modes
+
+By default:
+
+- **Core 0** runs the MicroPython VM.
+- **Core 1** continuously performs color conversion and refreshes the screen in the background.
+
+You can switch to **passive refresh mode**:
+
+```python
+#stop auto refresh
+picocalc.display.stopRefresh()
+# recover auto refresh
+picocalc.display.recoverRefresh()
+```
+
+- In passive mode, the screen only updates when you explicitly call:
+  ```python
+  picocalc.display.show(core=1)
+  ```
+- The `show()` method takes a `core` argument (`0` or `1`) to choose which core handles color conversion and DMA ping‐pong buffer setup.
+```
+
+
 
 The REPL and editor both run inside a VT100 terminal emulator, based on  
 [ht-deko/vt100_stm32](https://github.com/ht-deko/vt100_stm32), with bug fixes and additional features.

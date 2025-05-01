@@ -63,6 +63,17 @@ def screenshot_bmp(buffer, filename, width=320, height=320, palette=None):
 
     # Default VT100 16-color palette
     if palette is None:
+        lut = picocalc.display.getLUT() #get memoryview of the current LUT
+        palette = []
+        for i in range(16):
+            raw = lut[i]
+            raw = ((raw & 0xFF) << 8) | (raw >> 8)
+
+            r = ((raw >> 11) & 0x1F) << 3
+            g = ((raw >> 5) & 0x3F) << 2
+            b = (raw & 0x1F) << 3
+            palette.append((r, g, b))
+        '''
         palette = [
             (0x00, 0x00, 0x00),  # 0 black
             (0x80, 0x00, 0x00),  # 1 red
@@ -81,7 +92,7 @@ def screenshot_bmp(buffer, filename, width=320, height=320, palette=None):
             (0x00, 0xff, 0xff),  # 14 bright cyan
             (0xff, 0xff, 0xff),  # 15 bright white
         ]
-
+        '''
     row_bytes = ((width + 1) // 2 + 3) & ~3  # align to 4-byte boundary
     pixel_data_size = row_bytes * height
     file_size = FILE_HEADER_SIZE + INFO_HEADER_SIZE + PALETTE_SIZE + pixel_data_size

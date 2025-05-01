@@ -55,7 +55,7 @@ def rotation(width, height, fun, fb):
                 fb.pixel(w2 + x, h2 - y, c)
 
 
-WIDTH, HEIGHT = 320,320
+WIDTH, HEIGHT = 320,312
 
 
 

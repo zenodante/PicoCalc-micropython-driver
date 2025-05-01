@@ -7,7 +7,7 @@ from collections import deque
 import time
 import sdcard
 import uos
-
+import array
 from colorer import Fore, Back, Style, print, autoreset
 sd = None
 keyboard, display = None, None
@@ -59,7 +59,26 @@ class PicoDisplay(framebuf.FrameBuffer):
         super().__init__(self.buffer, self.width, self.height, color_type)
         picocalcdisplay.init(self.buffer,color_type,True)
 
-        
+    def restLUT(self):
+        picocalcdisplay.resetLUT(0)
+
+    def switchPredefinedLUT(self, name='vt100'):
+        if name == 'vt100':
+            picocalcdisplay.resetLUT(0)
+            
+        elif name == 'pico8':
+            picocalcdisplay.resetLUT(1)
+        else:
+            raise ValueError("Unknown LUT name. Use 'vt100' or 'pico8'.")
+
+    def getLUT(self):
+        return picocalcdisplay.getLUTview().cast("H")
+
+    def setLUT(self,lut):
+        if not (isinstance(lut, array.array) and lut.typecode == 'H'):
+            raise TypeError("LUT must be an array of type 'H' (unsigned short)")
+        picocalcdisplay.setLUT(lut)
+
     def stopRefresh(self):
         picocalcdisplay.stopAutoUpdate()
     
