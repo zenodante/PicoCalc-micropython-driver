@@ -130,6 +130,9 @@ class PicoDisplay(framebuf.FrameBuffer):
     def show(self,core=1):
         picocalcdisplay.update(core)
 
+    def isScreenUpdateDone(self):
+        return picocalcdisplay.isScreenUpdateDone()
+
 class PicoKeyboard:
     def __init__(self,sclPin=7,sdaPin=6,address=0x1f):
         self.hardwarekeyBuf = deque((),30)

@@ -413,7 +413,9 @@ static mp_obj_t pd_update(mp_obj_t core){
     int coreNum = mp_obj_get_int(core);
     if (autoUpdate==false){//only work when autoUpdate is false
       if (coreNum == 0){
+          oneShotisDone==false;
           pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
+          oneShotisDone=true;
       }else{
         //single shot core 1 update
         while(oneShotisDone==false);
@@ -426,6 +428,14 @@ static mp_obj_t pd_update(mp_obj_t core){
 }
 static MP_DEFINE_CONST_FUN_OBJ_1(pd_update_obj, pd_update);
 
+static mp_obj_t pd_isScreenUpdateDone(void){
+    if (autoUpdate==false){
+      return mp_obj_new_bool(oneShotisDone);
+    }else{
+      return mp_obj_new_bool(true); //always true when autoUpdate is true
+    }
+}
+static MP_DEFINE_CONST_FUN_OBJ_0(pd_isScreenUpdateDone_obj, pd_isScreenUpdateDone);
 
 void RGB565Update(uint8_t *frameBuff,uint32_t length,const uint16_t *LUT) {
     //gpio_put(CS_PIN, 1);
@@ -809,6 +819,8 @@ static const mp_rom_map_elem_t picocalcdisplay_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_drawTxt6x8), MP_ROM_PTR(&drawTxt6x8_obj) },
     { MP_ROM_QSTR(MP_QSTR_resetLUT), MP_ROM_PTR(&pd_resetLUT_obj) },
     { MP_ROM_QSTR(MP_QSTR_getLUTview), MP_ROM_PTR(&pd_getLUTview_obj) },
+    { MP_ROM_QSTR(MP_QSTR_isScreenUpdateDone), MP_ROM_PTR(&pd_isScreenUpdateDone_obj) },
+
 };
 static MP_DEFINE_CONST_DICT(picocalcdisplay_globals, picocalcdisplay_globals_table);
 

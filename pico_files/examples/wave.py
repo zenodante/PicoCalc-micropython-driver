@@ -171,7 +171,7 @@ def transform_points(amplitude: float, freq: float, phase: float,
 @micropython.native
 def draw_wave(amplitude, freq, phase, cam_dist, pitch, yaw, roll):
     # Clear framebuffer
-    display.fill(0)
+    
     
     # Precompute rotation values
     cx, sx = math.cos(pitch), math.sin(pitch)
@@ -187,8 +187,10 @@ def draw_wave(amplitude, freq, phase, cam_dist, pitch, yaw, roll):
     
     # Sort points by depth
     depth_sort(visible_count)
-    
+    while not display.isScreenUpdateDone():
+        pass # Wait for previous screen update to finish
     # Draw points in back-to-front order
+    display.fill(0)
     for i in range(visible_count):
         # Get index from draw order
         idx = draw_order[i]
@@ -255,7 +257,7 @@ while(True):
         break
     draw_wave(amp, freq, phase, cam_dist, pitch, yaw, roll)
     terminal.wr("\x1b[40;1HPress \'E\' to break...")
-    display.show(0)  # show in manual refresh mode
+    display.show(1)  # show in manual refresh mode
     #time.sleep(0.03)
 
 
