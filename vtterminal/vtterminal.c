@@ -777,9 +777,55 @@ static void nextLine(void) {
 static void horizontalTabulationSet(void) {
     tabs[XP] = 1;
   }
-  
-  // RI (Reverse Index): 
+  static void reverseIndex(int16_t v) {
+    if (v <= 0) return;
+    
+    int targetYP = YP - v;
+    
+    if (targetYP < M_TOP) {
+        int lines_to_scroll = v;
+        
+        int scroll_region_height = M_BOTTOM - M_TOP + 1;
+        if (lines_to_scroll > scroll_region_height)
+            lines_to_scroll = scroll_region_height;
 
+        int lines_to_move = scroll_region_height - lines_to_scroll;
+
+        if (lines_to_move > 0) {
+            int n = SC_W * lines_to_move;
+            int dst = SC_W * (M_TOP + lines_to_scroll);
+            int src = SC_W * M_TOP;
+            
+            if (src >= 0 && dst >= 0 && 
+                src + n <= SC_W * SC_H && 
+                dst + n <= SC_W * SC_H) {
+                memmove(&screen[dst], &screen[src], n);
+                memmove(&attrib[dst], &attrib[src], n);
+                memmove(&colors[dst], &colors[src], n);
+            }
+        }
+        int top_idx = SC_W * M_TOP;
+        int fill_len = SC_W * lines_to_scroll;
+
+        if (top_idx >= 0 && top_idx + fill_len <= SC_W * SC_H) {
+            memset(&screen[top_idx], 0x00, fill_len);
+            memset(&attrib[top_idx], defaultAttr.value, fill_len);
+            memset(&colors[top_idx], defaultColor.value, fill_len);
+        }
+
+        YP = M_TOP;
+        
+        for (int y = M_TOP; y <= M_BOTTOM; y++) {
+            if (y >= 0 && y < SC_H) {
+                sc_updateLine(y);
+            }
+        }
+    } else {
+        YP = targetYP;
+    }
+}  
+  // RI (Reverse Index): 
+/*
 static void reverseIndex(int16_t v) {
     //cursorUp(v);
     if ((YP - v) < M_TOP) {
@@ -813,7 +859,7 @@ static void reverseIndex(int16_t v) {
         YP -= v;
     }
   }
-  
+*/  
   // DECID (Identify): 
 static void identify(void) {
     deviceAttributes(0); // same as DA (Device Attributes)
