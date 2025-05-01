@@ -48,11 +48,6 @@ for gy in coords:
 
 
 
-# Pre-allocate temporary arrays for rotation calculations
-temp_x = array('f', [0.0] * GRID_POINTS)
-temp_y = array('f', [0.0] * GRID_POINTS)
-temp_z = array('f', [0.0] * GRID_POINTS)
-
 # Pre-allocate arrays for projected coordinates
 proj_x = array('i', [0] * GRID_POINTS)
 proj_y = array('i', [0] * GRID_POINTS)
@@ -260,7 +255,6 @@ del WIDTH, HEIGHT, GRID, GRID_POINTS, HALF_WIDTH, HALF_HEIGHT, FOCAL_LEN, MAX_CO
 del VIEWPORT_MIN_X, VIEWPORT_MAX_X, VIEWPORT_MIN_Y, VIEWPORT_MAX_Y
 del fast_sin, depth_sort, transform_points, draw_wave
 del coords, grid_x, grid_y, grid_r
-del temp_x, temp_y, temp_z
 del proj_x, proj_y, proj_size, proj_depth, proj_color, proj_visible
 del draw_order, sort_keys, sin_lut
 del temp, amp, freq, phase, cam_dist, pitch, yaw, roll
