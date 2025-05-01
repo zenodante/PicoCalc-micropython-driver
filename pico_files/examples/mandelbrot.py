@@ -44,7 +44,7 @@ terminal.dryBuffer()
 #terminal.stopRefresh()
 terminal.wr("\x1b[?25l")  # hide cursor
 temp =bytearray(1)
-for zoom in range(1024, 8192, 16):  # from 1x to 8x zoom
+for zoom in range(1024, 8192, 64):  # from 1x to 8x zoom
     render_mandelbrot(scale=zoom, center_x=0, center_y=0)
     terminal.wr("\x1b[40;1HPress any key to break...")
     #display.show()  # show in manual refresh mode

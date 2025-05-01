@@ -250,11 +250,14 @@ static  void drawCursor(uint16_t x, uint16_t y) {
 bool dispCursor(repeating_timer_t *rt) {
     if (escMode != NONE)
       return true;
-    sc_updateChar(p_XP, p_YP);  
+    //sc_updateChar(p_XP, p_YP);  
     if  (canShowCursor){
+
         isShowCursor = !isShowCursor;
         if (isShowCursor){
             drawCursor(XP, YP);
+        }else{
+            sc_updateChar(p_XP, p_YP);
         }
         p_XP = XP;
         p_YP = YP;
@@ -1138,6 +1141,7 @@ static void decResetMode(int16_t *vals, int16_t nVals) {
         case 25:
           // DECTCEM (Cursor Mode): 
           canShowCursor = false;
+          sc_updateChar(p_XP, p_YP);//cover the hided character at cursor position
           break;
         default:
           break;
