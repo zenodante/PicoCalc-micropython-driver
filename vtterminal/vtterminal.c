@@ -776,8 +776,8 @@ static void nextLine(void) {
   // HTS (Horizontal Tabulation Set): 
 static void horizontalTabulationSet(void) {
     tabs[XP] = 1;
-  }
-  static void reverseIndex(int16_t v) {
+}
+static void reverseIndex(int16_t v) {
     if (v <= 0) return;
     
     int targetYP = YP - v;
