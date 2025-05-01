@@ -4,11 +4,9 @@ import os
 import vt
 import sys
 # Separated imports because Micropython is super finnicky
-# Separated imports because Micropython is super finnicky
 from picocalc_system import run, files, memory, disk
 
 from pye import pye_edit
-import builtins
 
 try:
     pc_display = PicoDisplay(320, 320)
