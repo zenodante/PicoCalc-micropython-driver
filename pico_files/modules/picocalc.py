@@ -39,7 +39,46 @@ _StatePress = const(1)
 _StateLongPress = const(2)
 _StateRelease = const(3)
 
+'''
+import uctypes
+from uctypes import struct, OBJ, NATIVE_UINTPTR, UINT16, UINT8, LITTLE_ENDIAN
+from uctypes import addressof
 
+W2, H2 = 320, 320
+buf2 = bytearray(W2 * H2/2)
+
+# typedef struct _mp_obj_framebuf_t {
+#     mp_obj_base_t base;    // offset 0, 4 bytes
+#     mp_obj_t      buf_obj; // offset 4, 4 bytes
+#     void         *buf;     // offset 8, 4 bytes
+#     uint16_t      width;   // offset 12, 2 bytes
+#     uint16_t      height;  // offset 14, 2 bytes
+#     uint16_t      stride;  // offset 16, 2 bytes
+#     uint8_t       format;  // offset 18, 1 byte
+# } mp_obj_framebuf_t;
+layout = {
+    'buf_obj': (OBJ,              4),
+    'buf_ptr': (NATIVE_UINTPTR,   8),
+    'width':   (UINT16  | LITTLE_ENDIAN, 12),
+    'height':  (UINT16  | LITTLE_ENDIAN, 14),
+    'stride':  (UINT16  | LITTLE_ENDIAN, 16),
+    'format':  (UINT8,            18),
+}
+
+
+fb_s = struct(addressof(display), layout)
+fb_s.buf_obj = buf2
+fb_s.buf_ptr = addressof(buf2)
+
+#fb_s.width  = W2
+#fb_s.height = H2
+#fb_s.stride = W2
+
+#fb_s.format = framebuf.GS8
+
+
+
+'''
 class PicoDisplay(framebuf.FrameBuffer):
     def __init__(self, width, height,color_type = framebuf.GS4_HMSB):
         self.width = width
