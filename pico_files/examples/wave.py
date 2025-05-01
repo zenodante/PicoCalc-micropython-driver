@@ -46,10 +46,7 @@ for gy in coords:
         grid_r[idx] = math.sqrt(gx*gx + gy*gy)
         idx += 1
 
-# Pre-allocate point arrays for computation
-point_x = array('f', [0.0] * GRID_POINTS)
-point_y = array('f', [0.0] * GRID_POINTS)
-point_z = array('f', [0.0] * GRID_POINTS)
+
 
 # Pre-allocate temporary arrays for rotation calculations
 temp_x = array('f', [0.0] * GRID_POINTS)
@@ -118,22 +115,18 @@ def transform_points(amplitude: float, freq: float, phase: float,
         z0 = amplitude * fast_sin(r * 2 * math.pi * freq + phase)
         
         # Apply rotations - implemented inline to avoid function calls
-        # First rotate around X
-        y1 = y0 * cx - z0 * sx
-        z1 = y0 * sx + z0 * cx
+        # First rotate around Y (horizontal rotation around center)
+        x1 = z0 * sy + x0 * cy
+        z1 = z0 * cy - x0 * sy
         
-        # Then rotate around Y
-        x2 = z1 * sy + x0 * cy
-        z2 = z1 * cy - x0 * sy
-        
-        # Finally rotate around Z
-        x3 = x2 * cz - y1 * sz
-        y3 = x2 * sz + y1 * cz
+        # Then rotate around X (vertical tilt/pitch)
+        y2 = y0 * cx - z1 * sx
+        z2 = y0 * sx + z1 * cx
         
         # Store rotated point
-        point_x[i] = x3
-        point_y[i] = y3
-        point_z[i] = z2
+        #point_x[i] = x1
+        #point_y[i] = y2
+        #point_z[i] = z2
         
         # Apply perspective projection
         z_adj = z2 + cam_dist
@@ -141,8 +134,8 @@ def transform_points(amplitude: float, freq: float, phase: float,
             z_adj = 0.001
         
         inv_z = FOCAL_LEN / z_adj
-        px = int(x3 * inv_z) + HALF_WIDTH
-        py = int(y3 * inv_z) + HALF_HEIGHT
+        px = int(x1 * inv_z) + HALF_WIDTH
+        py = int(y2 * inv_z) + HALF_HEIGHT
         
         # Check if point is within viewport
         if (px < VIEWPORT_MIN_X or px > VIEWPORT_MAX_X or 
@@ -267,7 +260,6 @@ del WIDTH, HEIGHT, GRID, GRID_POINTS, HALF_WIDTH, HALF_HEIGHT, FOCAL_LEN, MAX_CO
 del VIEWPORT_MIN_X, VIEWPORT_MAX_X, VIEWPORT_MIN_Y, VIEWPORT_MAX_Y
 del fast_sin, depth_sort, transform_points, draw_wave
 del coords, grid_x, grid_y, grid_r
-del point_x, point_y, point_z
 del temp_x, temp_y, temp_z
 del proj_x, proj_y, proj_size, proj_depth, proj_color, proj_visible
 del draw_order, sort_keys, sin_lut
