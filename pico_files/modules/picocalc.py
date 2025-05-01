@@ -45,19 +45,19 @@ class PicoDisplay(framebuf.FrameBuffer):
         self.width = width
         self.height = height
         if color_type == framebuf.GS4_HMSB:
-            self.buffer = bytearray(self.width * self.height//2)  # 4bpp mono
+            buffer = bytearray(self.width * self.height//2)  # 4bpp mono
         elif color_type == framebuf.RGB565:
-            self.buffer = bytearray(self.width * self.height*2)
+            buffer = bytearray(self.width * self.height*2)
         elif color_type == framebuf.GS8:
-            self.buffer = bytearray(self.width * self.height)
+            buffer = bytearray(self.width * self.height)
         elif color_type == framebuf.GS2_HMSB:
-            self.buffer = bytearray(self.width * self.height//4)
+            buffer = bytearray(self.width * self.height//4)
         elif color_type == framebuf.MONO_HMSB:
-            self.buffer = bytearray(self.width * self.height//8)
+            buffer = bytearray(self.width * self.height//8)
 
 
-        super().__init__(self.buffer, self.width, self.height, color_type)
-        picocalcdisplay.init(self.buffer,color_type,True)
+        super().__init__(buffer, self.width, self.height, color_type)
+        picocalcdisplay.init(buffer,color_type,True)
 
     def restLUT(self):
         picocalcdisplay.resetLUT(0)
