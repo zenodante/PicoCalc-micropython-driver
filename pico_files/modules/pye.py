@@ -238,13 +238,15 @@ class Editor:
         )
     def scroll_up(self, scrolling):
         if Editor.TERMCMD[9]:
-            Editor.scrbuf[scrolling:] = Editor.scrbuf[:-scrolling]
+            #Editor.scrbuf[scrolling:] = Editor.scrbuf[:-scrolling]
+            Editor.scrbuf[scrolling:-1] = Editor.scrbuf[:-scrolling-1]
             Editor.scrbuf[:scrolling] = [""] * scrolling
             self.goto(0, 0)
             self.wr(Editor.TERMCMD[9] * scrolling)
     def scroll_down(self, scrolling):
         if Editor.TERMCMD[10]:
-            Editor.scrbuf[:-scrolling] = Editor.scrbuf[scrolling:]
+            #Editor.scrbuf[:-scrolling] = Editor.scrbuf[scrolling:]
+            Editor.scrbuf[:-scrolling-1] = Editor.scrbuf[scrolling:-1]
             Editor.scrbuf[-scrolling:] = [""] * scrolling
             self.goto(Editor.height - 1, 0)
             self.wr(Editor.TERMCMD[10] * scrolling)
@@ -329,7 +331,11 @@ class Editor:
                         + ((start_line == line) << 1)
                         + (((end_line - 1) == line) << 2)
                     )
-                l = (flag, self.content[line][self.margin : self.margin + Editor.width])
+                #l = (flag, self.content[line][self.margin : self.margin + Editor.width])
+                if c<Editor.height-1:
+                    l=(flag,self.content[line][self.margin : self.margin + Editor.width])
+                else:
+                    l=(flag,self.content[line][self.margin : self.margin + Editor.width-1])
                 if (flag and line == self.cur_line) or l != Editor.scrbuf[
                     c
                 ]:
@@ -497,6 +503,7 @@ class Editor:
             pos += way
         return pos
     def move_up(self):
+        print("move_up cur line %d top_line %d",self.cur_line,self.top_line)
         if self.cur_line > 0:
             self.cur_line -= 1
             if self.cur_line < self.top_line:
@@ -513,6 +520,7 @@ class Editor:
         if not self.skip_up():
             self.col -= 1
     def move_down(self):
+        print("move_down cur line %d top_line %d",self.cur_line,self.top_line)
         if self.cur_line < self.total_lines - 1:
             self.cur_line += 1
             if self.cur_line == self.top_line + Editor.height:
@@ -815,12 +823,14 @@ class Editor:
         elif key == KEY_SCRLUP:
             ni = 1 if char is None else 3
             if self.top_line > 0:
+                print("scrup self top line %d ni %d", self.top_line, ni)
                 self.top_line = max(self.top_line - ni, 0)
                 self.cur_line = min(self.cur_line, self.top_line + Editor.height - 1)
                 self.scroll_up(ni)
         elif key == KEY_SCRLDN:
             ni = 1 if char is None else 3
             if self.top_line + Editor.height < self.total_lines:
+                print("scrdn self top line %d ni %d", self.top_line, ni)
                 self.top_line = min(self.top_line + ni, self.total_lines - 1)
                 self.cur_line = max(self.cur_line, self.top_line)
                 self.scroll_down(ni)
