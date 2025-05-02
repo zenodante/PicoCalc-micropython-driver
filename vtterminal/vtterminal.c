@@ -286,6 +286,39 @@ static void initCursorAndAttribute(void) {
     mode.value = defaultMode;
     mode_ex.value = defaultModeEx;
 }
+
+static void scroll(void) {
+  if (mode.Flgs.CrLf) XP = 0;
+  int nextYP = YP + 1;
+  bool need_scroll = (nextYP > M_BOTTOM);
+  
+  if (need_scroll) {
+      YP = M_BOTTOM;  
+      int lines_to_scroll = M_BOTTOM - M_TOP;
+      if (lines_to_scroll > 0) {
+          size_t copy_bytes = lines_to_scroll * SC_W;
+          int dst = M_TOP * SC_W;
+          int src = (M_TOP + 1) * SC_W;
+          memmove(&screen[dst], &screen[src], copy_bytes);
+          memmove(&attrib[dst], &attrib[src], copy_bytes);
+          memmove(&colors[dst], &colors[src], copy_bytes);      
+      }
+      int bottom_idx = M_BOTTOM * SC_W;
+
+      memset(&screen[bottom_idx], 0, SC_W);
+      memset(&attrib[bottom_idx], defaultAttr.value, SC_W);
+      memset(&colors[bottom_idx], defaultColor.value, SC_W);
+      
+      for (int y = M_TOP; y <= M_BOTTOM; y++) {
+          if (y >= 0 && y < SC_H) {
+              sc_updateLine(y);
+          }
+      }
+  } else {
+      YP = nextYP;
+  }
+}
+/*
 static void scroll(void) {
   if (mode.Flgs.CrLf) XP = 0;
   YP++;
@@ -314,7 +347,7 @@ static void scroll(void) {
       for (uint8_t y = M_TOP; y <= M_BOTTOM; y++)
           sc_updateLine(y);
   }
-}
+}*/
 /*
 static void scroll(void) {
   if (mode.Flgs.CrLf) XP = 0;
