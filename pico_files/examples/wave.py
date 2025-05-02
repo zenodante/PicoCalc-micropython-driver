@@ -69,7 +69,7 @@ for i in range(SIN_LUT_SIZE):
 # This will hold depth values for the stable sorting algorithm
 sort_keys = array('f', [0.0] * GRID_POINTS)
 
-@micropython.viper
+@micropython.native
 def fast_sin(angle: float) -> float:
     # Fast sine approximation using lookup table
     index = int((angle % (2 * math.pi)) * SIN_LUT_SIZE / (2 * math.pi))
@@ -93,9 +93,9 @@ def depth_sort(visible_count):
                 draw_order[j], draw_order[j + 1] = draw_order[j + 1], draw_order[j]
 
 # Combined rotation and perspective projection with viewport culling
-@micropython.viper
+@micropython.native
 def transform_points(amplitude: float, freq: float, phase: float, 
-                     cam_dist: float, cx: float, sx: float, cy: float, sy: float, cz: float, sz: float):
+                     cam_dist: float, cx: float, sx: float, cy: float, sy: float):
     # Reset visibility count
     visible_count = 0
     
@@ -157,17 +157,17 @@ def transform_points(amplitude: float, freq: float, phase: float,
 
 # Main drawing function - completely rewritten to avoid memory allocations
 @micropython.native
-def draw_wave(amplitude, freq, phase, cam_dist, pitch, yaw, roll):
+def draw_wave(amplitude, freq, phase, cam_dist, pitch, yaw):
     # Clear framebuffer
     
     
     # Precompute rotation values
     cx, sx = math.cos(pitch), math.sin(pitch)
     cy, sy = math.cos(yaw), math.sin(yaw)
-    cz, sz = math.cos(roll), math.sin(roll)
+
     
     # Transform all points - apply rotation, projection, and viewport culling
-    visible_count = transform_points(amplitude, freq, phase, cam_dist, cx, sx, cy, sy, cz, sz)
+    visible_count = transform_points(amplitude, freq, phase, cam_dist, cx, sx, cy, sy)
     
     # Skip sorting and drawing if no points are visible
     if visible_count == 0:
@@ -179,6 +179,7 @@ def draw_wave(amplitude, freq, phase, cam_dist, pitch, yaw, roll):
         pass # Wait for previous screen update to finish
     # Draw points in back-to-front order
     display.fill(0)
+    terminal.wr("\x1b[39;1Hvisible"+str(visible_count))
     for i in range(visible_count):
         # Get index from draw order
         idx = draw_order[i]
@@ -212,7 +213,7 @@ terminal.stopRefresh()
 
 gamma = 2.2
 # Predefine an array of 16 zeros (type 'H')
-color_lut = array.array('H', [0] * 16)
+color_lut = array('H', [0] * 16)
 for i in range(16):
     # normalized position [0..1]
     f = i / 15
@@ -233,36 +234,36 @@ temp =bytearray(30)
 amp = 0.5  # Amplitude of the wave
 freq = 0.5  # Frequency of the wave
 phase = 0.0  # Phase shift of the wave
-cam_dist = 3.0 # Camera distance from the wave
-pitch = 0.5  # Pitch rotation
-yaw = 0.3  # Yaw rotation
-roll = 0.1  # Roll rotation
+cam_dist = 10.0 # Camera distance from the wave
+pitch = 0.1  # Pitch rotation
+yaw = 0.1  # Yaw rotation
+
 while(True):
     phase += 0.05  # Increment phase for animation
     if phase > 2 * math.pi:
         phase -= 2 * math.pi  # Reset phase to keep it within bounds
     if processKey():
         break
-    draw_wave(amp, freq, phase, cam_dist, pitch, yaw, roll)
+    draw_wave(amp, freq, phase, cam_dist, pitch, yaw)
     terminal.wr("\x1b[40;1HPress \'E\' to break...")
-    display.show(1)  # show in manual refresh mode
+    display.show(0)  # show in manual refresh mode
     #time.sleep(0.03)
 
 
 #terminal.wr("\x1b[40;1HPress any key to continue...")
 #terminal.rd()
-del WIDTH, HEIGHT, GRID, GRID_POINTS, HALF_WIDTH, HALF_HEIGHT, FOCAL_LEN, MAX_COLOR
-del VIEWPORT_MIN_X, VIEWPORT_MAX_X, VIEWPORT_MIN_Y, VIEWPORT_MAX_Y
-del fast_sin, depth_sort, transform_points, draw_wave
-del coords, grid_x, grid_y, grid_r
-del proj_x, proj_y, proj_size, proj_depth, proj_color, proj_visible
-del draw_order, sort_keys, sin_lut
-del temp, amp, freq, phase, cam_dist, pitch, yaw, roll
-del color_lut,gamma
+#del WIDTH, HEIGHT, GRID, GRID_POINTS, HALF_WIDTH, HALF_HEIGHT, FOCAL_LEN, MAX_COLOR
+#del VIEWPORT_MIN_X, VIEWPORT_MAX_X, VIEWPORT_MIN_Y, VIEWPORT_MAX_Y
+#del fast_sin, depth_sort, transform_points, draw_wave
+#del coords, grid_x, grid_y, grid_r
+#del proj_x, proj_y, proj_size, proj_depth, proj_color, proj_visible
+#del draw_order, sort_keys, sin_lut
+#del temp, amp, freq, phase, cam_dist, pitch, yaw
+#del color_lut,gamma
 gc.collect()  # Run garbage collector to free up memory
-
+terminal.recoverRefresh()
 display.fill(0) #clean the screen
 display.restLUT()
 terminal.wr("\x1b[2J\x1b[H")#move the cursor to the top, and clear the terminal buffer
-terminal.recoverRefresh()
+
 terminal.wr("\x1b[?25h")  # show cursor

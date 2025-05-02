@@ -413,7 +413,7 @@ static mp_obj_t pd_update(mp_obj_t core){
     int coreNum = mp_obj_get_int(core);
     if (autoUpdate==false){//only work when autoUpdate is false
       if (coreNum == 0){
-          oneShotisDone==false;
+          oneShotisDone=false;
           pColorUpdate(frameBuff,DISPLAY_HEIGHT*DISPLAY_WIDTH, LUT);
           oneShotisDone=true;
       }else{

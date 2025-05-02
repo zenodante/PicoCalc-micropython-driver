@@ -114,7 +114,7 @@ class PicoDisplay(framebuf.FrameBuffer):
         return picocalcdisplay.getLUTview().cast("H")
 
     def setLUT(self,lut):
-        if not (isinstance(lut, array.array) and lut.typecode == 'H'):
+        if not (isinstance(lut, array.array)):
             raise TypeError("LUT must be an array of type 'H' (unsigned short)")
         picocalcdisplay.setLUT(lut)
 
