@@ -39,25 +39,64 @@ _StatePress = const(1)
 _StateLongPress = const(2)
 _StateRelease = const(3)
 
+'''
+import uctypes
+from uctypes import struct, OBJ, NATIVE_UINTPTR, UINT16, UINT8, LITTLE_ENDIAN
+from uctypes import addressof
 
+W2, H2 = 320, 320
+buf2 = bytearray(W2 * H2/2)
+
+# typedef struct _mp_obj_framebuf_t {
+#     mp_obj_base_t base;    // offset 0, 4 bytes
+#     mp_obj_t      buf_obj; // offset 4, 4 bytes
+#     void         *buf;     // offset 8, 4 bytes
+#     uint16_t      width;   // offset 12, 2 bytes
+#     uint16_t      height;  // offset 14, 2 bytes
+#     uint16_t      stride;  // offset 16, 2 bytes
+#     uint8_t       format;  // offset 18, 1 byte
+# } mp_obj_framebuf_t;
+layout = {
+    'buf_obj': (OBJ,              4),
+    'buf_ptr': (NATIVE_UINTPTR,   8),
+    'width':   (UINT16  | LITTLE_ENDIAN, 12),
+    'height':  (UINT16  | LITTLE_ENDIAN, 14),
+    'stride':  (UINT16  | LITTLE_ENDIAN, 16),
+    'format':  (UINT8,            18),
+}
+
+
+fb_s = struct(addressof(display), layout)
+fb_s.buf_obj = buf2
+fb_s.buf_ptr = addressof(buf2)
+
+#fb_s.width  = W2
+#fb_s.height = H2
+#fb_s.stride = W2
+
+#fb_s.format = framebuf.GS8
+
+
+
+'''
 class PicoDisplay(framebuf.FrameBuffer):
     def __init__(self, width, height,color_type = framebuf.GS4_HMSB):
         self.width = width
         self.height = height
         if color_type == framebuf.GS4_HMSB:
-            self.buffer = bytearray(self.width * self.height//2)  # 4bpp mono
+            buffer = bytearray(self.width * self.height//2)  # 4bpp mono
         elif color_type == framebuf.RGB565:
-            self.buffer = bytearray(self.width * self.height*2)
+            buffer = bytearray(self.width * self.height*2)
         elif color_type == framebuf.GS8:
-            self.buffer = bytearray(self.width * self.height)
+            buffer = bytearray(self.width * self.height)
         elif color_type == framebuf.GS2_HMSB:
-            self.buffer = bytearray(self.width * self.height//4)
+            buffer = bytearray(self.width * self.height//4)
         elif color_type == framebuf.MONO_HMSB:
-            self.buffer = bytearray(self.width * self.height//8)
+            buffer = bytearray(self.width * self.height//8)
 
 
-        super().__init__(self.buffer, self.width, self.height, color_type)
-        picocalcdisplay.init(self.buffer,color_type,True)
+        super().__init__(buffer, self.width, self.height, color_type)
+        picocalcdisplay.init(buffer,color_type,True)
 
     def restLUT(self):
         picocalcdisplay.resetLUT(0)
@@ -75,7 +114,7 @@ class PicoDisplay(framebuf.FrameBuffer):
         return picocalcdisplay.getLUTview().cast("H")
 
     def setLUT(self,lut):
-        if not (isinstance(lut, array.array) and lut.typecode == 'H'):
+        if not (isinstance(lut, array.array)):
             raise TypeError("LUT must be an array of type 'H' (unsigned short)")
         picocalcdisplay.setLUT(lut)
 
@@ -90,6 +129,9 @@ class PicoDisplay(framebuf.FrameBuffer):
 
     def show(self,core=1):
         picocalcdisplay.update(core)
+
+    def isScreenUpdateDone(self):
+        return picocalcdisplay.isScreenUpdateDone()
 
 class PicoKeyboard:
     def __init__(self,sclPin=7,sdaPin=6,address=0x1f):

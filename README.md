@@ -184,12 +184,16 @@ By default:
 - **Core 1** continuously performs color conversion and refreshes the screen in the background.
 
 You can switch to **passive refresh mode**:
-
+Please refer the /examples/refresh.py for more details. 
 ```python
-#stop auto refresh
+# stop auto refresh
 picocalc.display.stopRefresh()
 # recover auto refresh
 picocalc.display.recoverRefresh()
+# manually update the screen by core 0, default is done by core 1, so you could use all core 0 for other logic
+picocalc.display.show(0)
+# wait the manual refresh function release the vram. If you use the manual refuresh function
+picocalc.display.isScreenUpdateDone()
 ```
 
 - In passive mode, the screen only updates when you explicitly call:

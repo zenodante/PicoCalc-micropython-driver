@@ -286,6 +286,39 @@ static void initCursorAndAttribute(void) {
     mode.value = defaultMode;
     mode_ex.value = defaultModeEx;
 }
+/*
+static void scroll(void) {
+  if (mode.Flgs.CrLf) XP = 0;
+  int nextYP = YP + 1;
+  bool need_scroll = (nextYP > M_BOTTOM);
+  
+  if (need_scroll) {
+      YP = M_BOTTOM;  
+      int lines_to_scroll = M_BOTTOM - M_TOP;
+      if (lines_to_scroll > 0) {
+          size_t copy_bytes = lines_to_scroll * SC_W;
+          int dst = M_TOP * SC_W;
+          int src = (M_TOP + 1) * SC_W;
+          memmove(&screen[dst], &screen[src], copy_bytes);
+          memmove(&attrib[dst], &attrib[src], copy_bytes);
+          memmove(&colors[dst], &colors[src], copy_bytes);      
+      }
+      int bottom_idx = M_BOTTOM * SC_W;
+
+      memset(&screen[bottom_idx], 0, SC_W);
+      memset(&attrib[bottom_idx], defaultAttr.value, SC_W);
+      memset(&colors[bottom_idx], defaultColor.value, SC_W);
+      
+      for (int y = M_TOP; y <= M_BOTTOM; y++) {
+          if (y >= 0 && y < SC_H) {
+              sc_updateLine(y);
+          }
+      }
+  } else {
+      YP = nextYP;
+  }
+}
+
 static void scroll(void) {
   if (mode.Flgs.CrLf) XP = 0;
   YP++;
@@ -314,7 +347,7 @@ static void scroll(void) {
       for (uint8_t y = M_TOP; y <= M_BOTTOM; y++)
           sc_updateLine(y);
   }
-}
+}*/
 /*
 static void scroll(void) {
   if (mode.Flgs.CrLf) XP = 0;
@@ -340,35 +373,30 @@ static void scroll(void) {
       sc_updateLine(y);
 }
 */
-/*
-static void scroll(void) {
-    if (mode.Flgs.CrLf) XP = 0;
-    if (YP+1 > M_BOTTOM) {
-      YP = M_BOTTOM;  
-      uint16_t n = SCSIZE - SC_W - ((M_TOP + MAX_SC_Y - M_BOTTOM) * SC_W);
-      uint16_t idx = SC_W * M_BOTTOM;
-      uint16_t idx2;
-      uint16_t idx3 = M_TOP * SC_W;
-      memmove(&screen[idx3], &screen[idx3 + SC_W], n);
-      memmove(&attrib[idx3], &attrib[idx3 + SC_W], n);
-      memmove(&colors[idx3], &colors[idx3 + SC_W], n);
-      for (uint8_t x = 0; x < SC_W; x++) {
-        idx2 = idx + x;
-        screen[idx2] = 0;
-        attrib[idx2] = defaultAttr.value;
-        colors[idx2] = defaultColor.value;
-      }
-      scroll_framebuffer(fb, M_TOP*CH_H, (M_BOTTOM+1)*CH_H-1, CH_H, clBlack);
-      
-    }else{
-        YP++;
+
+void scroll() {
+  if (mode.Flgs.CrLf) XP = 0;
+  YP++;
+  if (YP > M_BOTTOM) {
+    uint16_t n = SCSIZE - SC_W - ((M_TOP + MAX_SC_Y - M_BOTTOM) * SC_W);
+    uint16_t idx = SC_W * M_BOTTOM;
+    uint16_t idx2;
+    uint16_t idx3 = M_TOP * SC_W;
+    memmove(&screen[idx3], &screen[idx3 + SC_W], n);
+    memmove(&attrib[idx3], &attrib[idx3 + SC_W], n);
+    memmove(&colors[idx3], &colors[idx3 + SC_W], n);
+    for (uint8_t x = 0; x < SC_W; x++) {
+      idx2 = idx + x;
+      screen[idx2] = 0;
+      attrib[idx2] = defaultAttr.value;
+      colors[idx2] = defaultColor.value;
     }
-    for (uint8_t y = M_TOP; y <= M_BOTTOM; y++){
+    for (uint8_t y = M_TOP; y <= M_BOTTOM; y++)
       sc_updateLine(y);
-    }
-      
+    YP = M_BOTTOM;
+  }
 }
-*/
+
 
 static void clearParams(uint8_t m) {
     escMode = m;
@@ -772,48 +800,61 @@ static void vindex(int16_t v) {
 static void nextLine(void) {
     scroll();
 }
-  
+ 
   // HTS (Horizontal Tabulation Set): 
 static void horizontalTabulationSet(void) {
     tabs[XP] = 1;
-  }
-  
-  // RI (Reverse Index): 
+}
 
 static void reverseIndex(int16_t v) {
-    //cursorUp(v);
-    if ((YP - v) < M_TOP) {
-        // Scroll down the scroll region by v lines
+    if (v <= 0) return;
+    
+    int targetYP = YP - v;
+    
+    if (targetYP < M_TOP) {
         int lines_to_scroll = v;
-        if (lines_to_scroll > (M_BOTTOM - M_TOP + 1))
-            lines_to_scroll = (M_BOTTOM - M_TOP + 1);
+        
+        int scroll_region_height = M_BOTTOM - M_TOP + 1;
+        if (lines_to_scroll > scroll_region_height)
+            lines_to_scroll = scroll_region_height;
 
-        int lines_to_move = (M_BOTTOM - M_TOP + 1) - lines_to_scroll;
+        int lines_to_move = scroll_region_height - lines_to_scroll;
 
         if (lines_to_move > 0) {
             int n = SC_W * lines_to_move;
             int dst = SC_W * (M_TOP + lines_to_scroll);
             int src = SC_W * M_TOP;
-            memmove(&screen[dst], &screen[src], n);
-            memmove(&attrib[dst], &attrib[src], n);
-            memmove(&colors[dst], &colors[src], n);
+            
+            if (src >= 0 && dst >= 0 && 
+                src + n <= SC_W * SC_H && 
+                dst + n <= SC_W * SC_H) {
+                memmove(&screen[dst], &screen[src], n);
+                memmove(&attrib[dst], &attrib[src], n);
+                memmove(&colors[dst], &colors[src], n);
+            }
         }
-
-        // Fill new top lines
         int top_idx = SC_W * M_TOP;
         int fill_len = SC_W * lines_to_scroll;
-        memset(&screen[top_idx], 0x00, fill_len);
-        memset(&attrib[top_idx], defaultAttr.value, fill_len);
-        memset(&colors[top_idx], defaultColor.value, fill_len);
+
+        if (top_idx >= 0 && top_idx + fill_len <= SC_W * SC_H) {
+            memset(&screen[top_idx], 0x00, fill_len);
+            memset(&attrib[top_idx], defaultAttr.value, fill_len);
+            memset(&colors[top_idx], defaultColor.value, fill_len);
+        }
 
         YP = M_TOP;
-        for (uint8_t y = M_TOP; y <= M_BOTTOM; y++)
-            sc_updateLine(y);
+        
+        for (int y = M_TOP; y <= M_BOTTOM; y++) {
+            if (y >= 0 && y < SC_H) {
+                sc_updateLine(y);
+            }
+        }
     } else {
-        YP -= v;
+        YP = targetYP;
     }
-  }
-  
+}  
+  // RI (Reverse Index): 
+
   // DECID (Identify): 
 static void identify(void) {
     deviceAttributes(0); // same as DA (Device Attributes)
