@@ -28,3 +28,11 @@ while(True):
         i=0
     terminal.wr("\x1b[40;1HPress \'E\' to break...")
     display.show() 
+
+
+terminal.recoverRefresh()
+display.fill(0) #clean the screen
+display.restLUT()
+terminal.wr("\x1b[2J\x1b[H")#move the cursor to the top, and clear the terminal buffer
+
+terminal.wr("\x1b[?25h")  # show cursor
