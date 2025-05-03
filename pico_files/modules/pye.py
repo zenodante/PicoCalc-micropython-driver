@@ -330,9 +330,7 @@ class Editor:
                         + (((end_line - 1) == line) << 2)
                     )
                 l = (flag, self.content[line][self.margin : self.margin + Editor.width])
-                if (flag and line == self.cur_line) or l != Editor.scrbuf[
-                    c
-                ]:
+                if (flag and line == self.cur_line) or l != Editor.scrbuf[c]:
                     self.goto(c, 0)
                     if flag == 0:
                         #self.wr(l[1])
@@ -815,6 +813,8 @@ class Editor:
         elif key == KEY_SCRLUP:
             ni = 1 if char is None else 3
             if self.top_line > 0:
+                if self.top_line - ni < 0:
+                    ni = self.top_line
                 self.top_line = max(self.top_line - ni, 0)
                 self.cur_line = min(self.cur_line, self.top_line + Editor.height - 1)
                 self.scroll_up(ni)
