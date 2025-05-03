@@ -1467,7 +1467,7 @@ static void drawTxt6x8(uint8_t *fb,uint8_t c,int x0,int y0, uint8_t color){
       if (0 <= y && y < SC_PIXEL_WIDTH) {
         x = x0;
         uint8_t line_data = *chr_data++; 
-        for (;x<x0+CH_W-1;x++){
+        for (;x<x0+CH_W;x++){
             if ((line_data&0x80)&&(0 <= x && x < SC_PIXEL_WIDTH)) { // only draw if pixel set
                 setpixel(fb,x, y,color);
             }
