@@ -207,7 +207,9 @@ picocalc.display.isScreenUpdateDone()
 
 The REPL and editor both run inside a VT100 terminal emulator, based on  
 [ht-deko/vt100_stm32](https://github.com/ht-deko/vt100_stm32), with bug fixes and additional features.
+### TUI for user interface
 
+Now working on picoTUI port https://github.com/pfalcon/picotui
 ---
 
 ## Credits
@@ -215,3 +217,4 @@ The REPL and editor both run inside a VT100 terminal emulator, based on
 - [ht-deko/vt100_stm32](https://github.com/ht-deko/vt100_stm32)
 - `sdcard.py` is from the official MicroPython repository: [micropython-lib/sdcard.py](https://github.com/micropython/micropython-lib/blob/master/micropython/drivers/storage/sdcard/sdcard.py)
 - `flash_nuke.uf2` is from the Raspberry Pi Documentation: [Resetting Flash Memory](https://www.raspberrypi.com/documentation/microcontrollers/pico-series.html#resetting-flash-memory)
+- picoTUI https://github.com/pfalcon/picotui
