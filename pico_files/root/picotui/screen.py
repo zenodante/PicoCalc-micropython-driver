@@ -57,6 +57,7 @@ class Screen:
     @staticmethod
     def attr_reset():
         Screen.wr("\x1b[0m")
+        #Screen.attr_color(0,7)# Reset to default colors for gui(black on white)
 
     @staticmethod
     def cursor(onoff):

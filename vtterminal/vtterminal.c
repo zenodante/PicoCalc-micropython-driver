@@ -171,6 +171,7 @@ static void reverseIndex(int16_t v);
 static void identify(void);
 static void resetToInitialState(void);
 //static void cursorUp(int16_t v);
+static void earseNextChars(int16_t v);
 static void cursorDown(int16_t v);
 static void cursorPosition(uint8_t y, uint8_t x);
 static void refreshScreen(void);
@@ -529,6 +530,10 @@ static mp_obj_t vt_printChar(mp_obj_t value_obj) {
             v1 = (nVals == 0) ? 1 : vals[0];
             cursorBackward(v1);
             break;
+          case 'X':
+            v1 = (nVals == 0) ? 1 : vals[0];
+            earseNextChars(v1);
+            break;
           case 'H':
           // CUP (Cursor Position): 
           case 'f':
@@ -883,7 +888,16 @@ static void cursorUp(int16_t v) {
   }
 */  
   // CUD (Cursor Down): 
-
+static void earseNextChars(int16_t v){
+    if (v <= 0) return;
+    int16_t idx = YP * SC_W + XP;
+    int16_t n = SC_W - XP;
+    if (v > n) v = n;
+    memset(&screen[idx], 0x00, v);
+    memset(&attrib[idx], defaultAttr.value, v);
+    memset(&colors[idx], cColor.value, v);
+    sc_updateLine(YP);
+  }
 static void cursorDown(int16_t v) {
 
     if ((YP+v)>M_BOTTOM){
