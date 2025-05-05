@@ -3,12 +3,12 @@ import os
 from .screen import Screen
 from .defs import KEYMAP as _KEYMAP
 from picocalc import terminal
-
+from micropython import const
 # Standard widget result actions (as return from .loop())
-ACTION_OK = 1000
-ACTION_CANCEL = 1001
-ACTION_NEXT = 1002
-ACTION_PREV = 1003
+ACTION_OK = const(1000)
+ACTION_CANCEL = const(1001)
+ACTION_NEXT = const(1002)
+ACTION_PREV = const(1003)
 
 
 class VT100Parser:

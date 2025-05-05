@@ -117,11 +117,13 @@ class Screen:
     @classmethod
     def init_tty(cls):
         #terminal.wr("\x1b[?7l")
-        terminal.wr("\x1b[?7l\x1b[?25l\x1b[2J\x1b[H")
+        #terminal.wr("\x1b[0m\x1b[?7l\x1b[?25l\x1b[2J\x1b[H")
+        terminal.wr("\x1b[0m\x1b[?7l")
 
     @classmethod
     def deinit_tty(cls):
-        terminal.wr("\x1b[?7h\x1b[?25h\x1b[2J\x1b[H")
+        #terminal.wr("\x1b[0m\x1b[?7h\x1b[?25h\x1b[2J\x1b[H")
+        terminal.wr("\x1b[0m\x1b[?7h")
 
 
     @classmethod
