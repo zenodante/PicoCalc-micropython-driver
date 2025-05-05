@@ -2,7 +2,7 @@ import os
 
 from .screen import Screen
 from .defs import KEYMAP as _KEYMAP
-
+from picocalc import terminal
 
 # Standard widget result actions (as return from .loop())
 ACTION_OK = 1000
@@ -10,9 +10,65 @@ ACTION_CANCEL = 1001
 ACTION_NEXT = 1002
 ACTION_PREV = 1003
 
+
+class VT100Parser:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.state = 'IDLE'
+        self.buffer = bytearray()
+
+    def feed(self, byte):
+        self.buffer.append(byte)
+
+        if self.state == 'IDLE':
+            if byte == 0x1b:
+                self.state = 'ESC'
+                return None
+            else:
+                out = bytes(self.buffer)
+                self.reset()
+                return out
+
+        elif self.state == 'ESC':
+            if byte == ord('['):
+                self.state = 'CSI'
+                return None
+            elif byte == ord('O'):
+                self.state = 'SS3'
+                return None
+            elif byte == 0x1b:
+                out = b'\x1b\x1b'
+                self.reset()
+                return out
+            else:
+                out = bytes(self.buffer)
+                self.reset()
+                return out
+
+        elif self.state == 'CSI':
+            if byte in range(0x40, 0x7e):  # '@' to '~'
+                out = bytes(self.buffer)
+                self.reset()
+                return out
+            return None  # More to come (e.g. ~)
+
+        elif self.state == 'SS3':
+            if byte in b'PQRSHF':
+                out = bytes(self.buffer)
+                self.reset()
+                return out
+            return None
+
+        else:
+            self.reset()
+            return None
+        
 class Widget(Screen):
 
     def __init__(self):
+        self.parser = VT100Parser()
         self.kbuf = b""
         self.signals = {}
 
@@ -41,25 +97,14 @@ class Widget(Screen):
         self.cursor(False)
 
     def get_input(self):
-        if self.kbuf:
-            key = self.kbuf[0:1]
-            self.kbuf = self.kbuf[1:]
-        else:
-            key = os.read(0, 32)
-            if key[0] != 0x1b:
-                key = key.decode()
-                self.kbuf = key[1:].encode()
-                key = key[0:1].encode()
-        key = _KEYMAP.get(key, key)
+        while True:
+            b = terminal.rd()  # Blocking read, returns byte or bytes
+            b = b.encode()
+            for byte in b:
+                result = self.parser.feed(byte)
+                if result:
+                    return _KEYMAP.get(result, result) 
 
-        if isinstance(key, bytes) and key.startswith(b"\x1b[M") and len(key) == 6:
-            if key[3] != 32:
-                return None
-            row = key[5] - 33
-            col = key[4] - 33
-            return [col, row]
-
-        return key
 
     def handle_input(self, inp):
         if isinstance(inp, list):

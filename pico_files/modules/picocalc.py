@@ -81,6 +81,7 @@ fb_s.buf_ptr = addressof(buf2)
 '''
 class PicoDisplay(framebuf.FrameBuffer):
     def __init__(self, width, height,color_type = framebuf.GS4_HMSB):
+        
         self.width = width
         self.height = height
         if color_type == framebuf.GS4_HMSB:
@@ -93,7 +94,7 @@ class PicoDisplay(framebuf.FrameBuffer):
             buffer = bytearray(self.width * self.height//4)
         elif color_type == framebuf.MONO_HMSB:
             buffer = bytearray(self.width * self.height//8)
-
+        self.buffer = buffer
 
         super().__init__(buffer, self.width, self.height, color_type)
         picocalcdisplay.init(buffer,color_type,True)
@@ -111,7 +112,7 @@ class PicoDisplay(framebuf.FrameBuffer):
             raise ValueError("Unknown LUT name. Use 'vt100' or 'pico8'.")
 
     def getLUT(self):
-        return picocalcdisplay.getLUTview().cast("H")
+        return picocalcdisplay.getLUTview()
 
     def setLUT(self,lut):
         if not (isinstance(lut, array.array)):
@@ -132,7 +133,24 @@ class PicoDisplay(framebuf.FrameBuffer):
 
     def isScreenUpdateDone(self):
         return picocalcdisplay.isScreenUpdateDone()
+picokeymap = {
+    0x0a:b'\r',
+    0x08:b'\x7f',
+    0xb1:b'\x1b\x1b',
+    0xd2:b'\x1b[H',
+    0xd5:b'\x1b[F',
+    0x81:b'\x1bOP',
+    0x82:b'\x1bOQ',
+    0x83:b'\x1bOR',
+    0x84:b'\x1bOS',
+    0x85:b'\x1b[15~',
+    0x86:b'\x1b[17~',
+    0x87:b'\x1b[18~',
+    0x88:b'\x1b[19~',
+    0x89:b'\x1b[20~',
+    0x90:b'\x1b[21~',
 
+}
 class PicoKeyboard:
     def __init__(self,sclPin=7,sdaPin=6,address=0x1f):
         self.hardwarekeyBuf = deque((),30)
@@ -271,28 +289,22 @@ class PicoKeyboard:
                                 self.hardwarekeyBuf.extend(b'\x1b['+parameters+modifier+b'B')
                             elif key == 0xB7:
                                 self.hardwarekeyBuf.extend(b'\x1b['+parameters+modifier+b'C')
-                        elif key == 0x0A:
-                            self.hardwarekeyBuf.append(ord('\r'))
-                            #self.hardwarekeyBuf.append(ord('\n')) #return key
-                        elif key == 0xB1:  # KEY_ESC
-                            self.hardwarekeyBuf.extend(b'\x1b\x1b')
-                        elif key == 0xD2: #KEY_HOME
-                            self.hardwarekeyBuf.extend(b'\x1b[H')
-                        elif key == 0xD5: #end
-                            self.hardwarekeyBuf.extend(b'\x1b[F')
-                        elif key == 0x08: #backspace
-                            self.hardwarekeyBuf.append(0x7F)
-                        elif key == 0xD4: #delete
+                        elif key == 0xD4:
                             self.hardwarekeyBuf.extend(b'\x1b[3'+modifier+b'~')
                         else:
-                            if self.isAlt == True:
-                                if key !=ord(' ') and key!=ord(',') and key!=ord('.'):
-                                    self.hardwarekeyBuf.extend(b'\x1b')#to match the vt100 terminal style
-                                    self.hardwarekeyBuf.append(key)
-                            elif self.isCtrl == True:   
-                                self.hardwarekeyBuf.append(key&0x1F)
+                            mapkey = picokeymap.get(key,None)
+                            if mapkey!=None:
+                                self.hardwarekeyBuf.extend(mapkey)
                             else:
-                                self.hardwarekeyBuf.append(key)
+                        
+                                if self.isAlt == True:
+                                    if key !=ord(' ') and key!=ord(',') and key!=ord('.'):
+                                        self.hardwarekeyBuf.extend(b'\x1b')#to match the vt100 terminal style
+                                        self.hardwarekeyBuf.append(key)
+                                elif self.isCtrl == True:   
+                                    self.hardwarekeyBuf.append(key&0x1F)
+                                else:
+                                    self.hardwarekeyBuf.append(key)
                 else:
                     if key == 0xa2 or key == 0xa3:
                         self.isShift = False

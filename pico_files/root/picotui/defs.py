@@ -58,7 +58,6 @@ b"\x1b[H": KEY_HOME,
 b"\x1b[F": KEY_END,
 b"\x1bOH": KEY_HOME,
 b"\x1bOF": KEY_END,
-b"\x1b[1~": KEY_HOME,
 b"\x1b[4~": KEY_END,
 b"\x1b[5~": KEY_PGUP,
 b"\x1b[6~": KEY_PGDN,
@@ -66,7 +65,7 @@ b"\x03": KEY_QUIT,
 b"\r": KEY_ENTER,
 b"\x7f": KEY_BACKSPACE,
 b"\x1b[3~": KEY_DELETE,
-b"\x1b": KEY_ESC,
+b"\x1b\x1b": KEY_ESC,
 b"\x1bOP": KEY_F1,
 b"\x1bOQ": KEY_F2,
 b"\x1bOR": KEY_F3,
@@ -76,6 +75,6 @@ b"\x1bOS": KEY_F4,
 # Unicode symbols in UTF-8
 
 # DOWNWARDS ARROW
-DOWN_ARROW = b"\x19"
+DOWN_ARROW = "\x19"
 # BLACK DOWN-POINTING TRIANGLE
-DOWN_TRIANGLE = b"\x1f"
+DOWN_TRIANGLE = "\x1f"

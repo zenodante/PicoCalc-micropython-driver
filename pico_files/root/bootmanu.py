@@ -1,94 +1,63 @@
-from picocalc import terminal
+from picotui.context import Context
+from picotui.screen import Screen
+from picotui.widgets import *
+from picotui.defs import *
 
-SELECTOR = '\x10'  # Code Page 437: ►
-MENU_ITEMS = [
-    "Boot to REPL on Screen",
-    "Boot to USB REPL"
-]
 
-def clear_screen(w=53, h=40):
-    terminal.wr("\x1b[30;46m")  # fg=black, bg=cyan
-    terminal.wr("\x1b[2J")  # Clear screen
-    terminal.wr("\x1b[H")   # Move cursor to home
-    
-    # Fill the screen with colored background
-    for row in range(h):
-        terminal.wr(f"\x1b[{row+1};1H" + " " * w)
+with Context():
 
-def move_cursor(y, x):
-    terminal.wr(f"\x1b[{y};{x}H")
+    Screen.attr_color(C_WHITE, C_BLUE)
+    Screen.cls()
+    Screen.attr_reset()
+    d = Dialog(1, 1, 50, 12)
 
-def draw_box(x, y, w, h):
-    # Draw the box content (filled area) - cyan background
-    terminal.wr("\x1b[30;46m")  # fg=black, bg=cyan
-    for i in range(h):
-        move_cursor(y + i, x)
-        terminal.wr(" " * w)
-    
-    # Draw the shadow using Code Page 437 character 0xB1 (░)
-    terminal.wr("\x1b[90;40m")  # fg=bright black (gray), bg=black for shadow
-    
-    # Draw right shadow column
-    for i in range(h):
-        move_cursor(y + i, x + w)
-        terminal.wr("\xB1")  # Code Page 437: ░ (light shade)
-    
-    # Draw bottom shadow row
-    move_cursor(y + h, x + 1)
-    terminal.wr("\xB1" * w)
-    
-    # Restore main color
-    terminal.wr("\x1b[30;46m")  # Return to fg=black, bg=cyan
+    # Can add a raw string to dialog, will be converted to WLabel
+    d.add(1, 1, "Label:")
+    d.add(11, 1, WLabel("it's me!"))
 
-def draw_menu(x, y, selected):
-    terminal.wr("\x1b[30;46m")  # fg=black, bg=cyan - make sure text has right colors
-    for i, text in enumerate(MENU_ITEMS):
-        move_cursor(y + i, x)
-        marker = SELECTOR if i == selected else " "
-        terminal.wr(f"[{marker}] {text}")
+    d.add(1, 2, "Entry:")
+    d.add(11, 2, WTextEntry(4, "foo"))
 
-def update_selector(x, y, old_idx, new_idx):
-    terminal.wr("\x1b[30;46m")  # fg=black, bg=cyan
-    move_cursor(y + old_idx, x + 1)  # +1 to position after the opening bracket
-    terminal.wr(" ")  # Clear old selector
-    move_cursor(y + new_idx, x + 1)  # +1 to position after the opening bracket
-    terminal.wr(SELECTOR)  # Draw new selector
+    d.add(1, 3, "Dropdown:")
+    d.add(11, 3, WDropDown(10, ["Red", "Green", "Yellow"]))
 
-def boot_menu():
-    screen_w, screen_h = 53, 40
-    clear_screen(screen_w, screen_h)
-    terminal.wr("\x1b[30;46m")  # fg=black, bg=cyan - set main colors
-    terminal.wr("\x1b[?25l")  # Hide cursor
-    
-    W = 30
-    H = len(MENU_ITEMS) + 2
-    
-    # Center the box
-    x = (screen_w // 2) - (W // 2)
-    y = (screen_h // 2) - (H // 2)
-    
-    draw_box(x, y, W, H)
-    selected = 0
-    draw_menu(x + 2, y + 1, selected)  # Initial draw
-    
-    while True:
-        ch = terminal.rd()
-        old_selected = selected
-        
-        if ch == b'\x1b':  # ESC
-            ch2 = terminal.rd()
-            if ch2 == b'[':
-                ch3 = terminal.rd()
-                if ch3 == b'A':  # Up
-                    selected = (selected - 1) % len(MENU_ITEMS)
-                elif ch3 == b'B':  # Down
-                    selected = (selected + 1) % len(MENU_ITEMS)
-        elif ch == b'\r':  # Enter
-            break
-            
-        if selected != old_selected:
-            update_selector(x + 2, y + 1, old_selected, selected)
-    
-    terminal.wr("\x1b[?25h")  # Show cursor again
-    terminal.wr("\x1b[0m")    # Reset terminal colors
-    return selected
+    d.add(1, 4, "Combo:")
+    d.add(11, 4, WComboBox(8, "fo", ["foo", "foobar", "bar", "long string"]))
+
+    d.add(1, 5, "Auto complete:")
+    d.add(15, 5, WAutoComplete(8, "fo", ["foo", "foobar", "bar", "car", "dar"]))
+
+    d.add(1, 6, "Password:")
+    d.add(11, 6, WPasswdEntry(10, ""))
+
+    d.add(1, 8, "Multiline:")
+    d.add(1, 9, WMultiEntry(26, 3, ["Example", "Text"]))
+
+    d.add(30, 1, WFrame(18, 6, "Frame"))
+    d.add(31, 2, WCheckbox("State"))
+    d.add(31, 3, WRadioButton(["Red", "Green", "Yellow"]))
+
+    d.add(30, 8, "List:")
+    d.add(30, 9, WListBox(16, 4, ["choice%d" % i for i in range(10)]))
+
+    d.add(1, 13, "Button:")
+    b = WButton(9, "Kaboom!")
+    d.add(10, 13, b)
+    b.on("click", lambda w: 1/0)
+
+    d.add(1, 15, "Dialog buttons:")
+    b = WButton(8, "OK")
+    d.add(10, 16, b)
+    # Instead of having on_click handler, buttons can finish a dialog
+    # with a given result.
+    b.finish_dialog = ACTION_OK
+
+    b = WButton(8, "Cancel")
+    d.add(30, 16, b)
+    b.finish_dialog = ACTION_CANCEL
+
+    #d.redraw()
+    res = d.loop()
+
+
+print("Result:", res)

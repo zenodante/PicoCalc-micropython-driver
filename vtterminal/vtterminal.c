@@ -969,7 +969,7 @@ static void eraseInDisplay(uint8_t m) {
     if (m <= 2) {
       memset(&screen[idx], 0x00, n);
       memset(&attrib[idx], defaultAttr.value, n);
-      memset(&colors[idx], defaultColor.value, n);
+      memset(&colors[idx], cColor.value, n);
       for (uint8_t i = sl; i <= el; i++)
         sc_updateLine(i);
     }

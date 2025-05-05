@@ -1,12 +1,12 @@
 import os
-import signal
+#import signal
 from picocalc import terminal
 
 class Screen:
 
     @staticmethod
     def wr(s):
-        terminal.write(s)
+        terminal.wr(s)
 
     @staticmethod
     def wr_fixedw(s, width):
@@ -19,7 +19,7 @@ class Screen:
 
     @staticmethod
     def cls():
-        Screen.wr(b"\x1b[2J")
+        Screen.wr("\x1b[2J")
 
     @staticmethod
     def goto(x, y):
@@ -28,7 +28,7 @@ class Screen:
 
     @staticmethod
     def clear_to_eol():
-        Screen.wr(b"\x1b[0K")
+        Screen.wr("\x1b[0K")
 
     # Clear specified number of positions
     @staticmethod
@@ -52,18 +52,18 @@ class Screen:
             if (fg > 8):
                 Screen.wr("\x1b[%d;%d;1m" % (fg + 30 - 8, bg + 40))
             else:
-                Screen.wr("\x1b[0;%d;%dm" % (fg + 30, bg + 40))
+                Screen.wr("\x1b[%d;%dm" % (fg + 30, bg + 40))
 
     @staticmethod
     def attr_reset():
-        Screen.wr(b"\x1b[0m")
+        Screen.wr("\x1b[0m")
 
     @staticmethod
     def cursor(onoff):
         if onoff:
-            Screen.wr(b"\x1b[?25h")
+            Screen.wr("\x1b[?25h")
         else:
-            Screen.wr(b"\x1b[?25l")
+            Screen.wr("\x1b[?25l")
 
     def draw_box(self, left, top, width, height):
         # Use http://www.utf8-chartable.de/unicode-utf8-table.pl
@@ -71,33 +71,33 @@ class Screen:
         bottom = top + height - 1
         self.goto(left, top)
         # "┌"
-        self.wr(b"\xda")
+        self.wr("\xda")
         # "─"
-        hor = b"\xc4" * (width - 2)
+        hor = "\xc4" * (width - 2)
         self.wr(hor)
         # "┐"
-        self.wr(b"\xbf")
+        self.wr("\xbf")
 
         self.goto(left, bottom)
         # "└"
-        self.wr(b"\xc0")
+        self.wr("\xc0")
         self.wr(hor)
         # "┘"
-        self.wr(b"\xd9")
+        self.wr("\xd9")
 
         top += 1
         while top < bottom:
             # "│"
             self.goto(left, top)
-            self.wr(b"\xb3")
+            self.wr("\xb3")
             self.goto(left + width - 1, top)
-            self.wr(b"\xb3")
+            self.wr("\xb3")
             top += 1
 
     def clear_box(self, left, top, width, height):
         # doesn't work
         #self.wr("\x1b[%s;%s;%s;%s$z" % (top + 1, left + 1, top + height, left + width))
-        s = b" " * width
+        s = " " * width
         bottom = top + height
         while top < bottom:
             self.goto(left, top)
@@ -115,7 +115,8 @@ class Screen:
 
     @classmethod
     def init_tty(cls):
-        terminal.wr("\x1b[?7l")
+        #terminal.wr("\x1b[?7l")
+        terminal.wr("\x1b[?7l\x1b[?25l\x1b[2J\x1b[H")
 
     @classmethod
     def deinit_tty(cls):
@@ -141,7 +142,7 @@ class Screen:
     # This is called to restore original screen, as we don't save it.
     @classmethod
     def set_screen_redraw(cls, handler):
-        pass
+        cls.screen_redraw = handler
 
     @classmethod
     def set_screen_resize(cls, handler):
