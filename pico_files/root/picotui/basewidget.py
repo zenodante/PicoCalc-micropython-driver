@@ -12,63 +12,65 @@ ACTION_PREV = const(1003)
 
 
 class VT100Parser:
-    def __init__(self):
-        self.reset()
+    state = 'IDLE'
+    buffer = bytearray()
 
-    def reset(self):
-        self.state = 'IDLE'
-        self.buffer = bytearray()
+    @classmethod
+    def reset(cls):
+        cls.state = 'IDLE'
+        cls.buffer.clear()
 
-    def feed(self, byte):
-        self.buffer.append(byte)
+    @classmethod
+    def feed(cls, byte):
+        cls.buffer.append(byte)
 
-        if self.state == 'IDLE':
+        if cls.state == 'IDLE':
             if byte == 0x1b:
-                self.state = 'ESC'
+                cls.state = 'ESC'
                 return None
             else:
-                out = bytes(self.buffer)
-                self.reset()
+                out = bytes(cls.buffer)
+                cls.reset()
                 return out
 
-        elif self.state == 'ESC':
+        elif cls.state == 'ESC':
             if byte == ord('['):
-                self.state = 'CSI'
+                cls.state = 'CSI'
                 return None
             elif byte == ord('O'):
-                self.state = 'SS3'
+                cls.state = 'SS3'
                 return None
             elif byte == 0x1b:
                 out = b'\x1b\x1b'
-                self.reset()
+                cls.reset()
                 return out
             else:
-                out = bytes(self.buffer)
-                self.reset()
+                out = bytes(cls.buffer)
+                cls.reset()
                 return out
 
-        elif self.state == 'CSI':
-            if byte in range(0x40, 0x7e):  # '@' to '~'
-                out = bytes(self.buffer)
-                self.reset()
+        elif cls.state == 'CSI':
+            if 0x40 <= byte < 0x7e:
+                out = bytes(cls.buffer)
+                cls.reset()
                 return out
-            return None  # More to come (e.g. ~)
+            return None
 
-        elif self.state == 'SS3':
+        elif cls.state == 'SS3':
             if byte in b'PQRSHF':
-                out = bytes(self.buffer)
-                self.reset()
+                out = bytes(cls.buffer)
+                cls.reset()
                 return out
             return None
 
         else:
-            self.reset()
+            cls.reset()
             return None
         
 class Widget(Screen):
 
     def __init__(self):
-        self.parser = VT100Parser()
+        #self.parser = VT100Parser()
         self.kbuf = b""
         self.signals = {}
 
@@ -98,12 +100,11 @@ class Widget(Screen):
 
     def get_input(self):
         while True:
-            b = terminal.rd()  # Blocking read, returns byte or bytes
-            b = b.encode()
-            for byte in b:
-                result = self.parser.feed(byte)
-                if result:
-                    return _KEYMAP.get(result, result) 
+            ch = terminal.rd()  # e.g. returns '\x1b'
+            byte = ord(ch)      # convert to integer 0-255
+            result = VT100Parser.feed(byte)
+            if result:
+                return _KEYMAP.get(result, result)
 
 
     def handle_input(self, inp):
