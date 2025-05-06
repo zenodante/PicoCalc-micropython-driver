@@ -13,23 +13,29 @@ ACTION_PREV = const(1003)
 
 class VT100Parser:
     state = 'IDLE'
-    buffer = bytearray()
+    buffer = bytearray(5)  # 预分配最多5字节
+    pos = 0
 
     @classmethod
     def reset(cls):
         cls.state = 'IDLE'
-        cls.buffer= bytearray()
+        cls.pos = 0  # 仅重置写入位置
 
     @classmethod
     def feed(cls, byte):
-        cls.buffer.append(byte)
+        if cls.pos < len(cls.buffer):
+            cls.buffer[cls.pos] = byte
+            cls.pos += 1
+        else:
+            cls.reset()
+            return None  
 
         if cls.state == 'IDLE':
             if byte == 0x1b:
                 cls.state = 'ESC'
                 return None
             else:
-                out = bytes(cls.buffer)
+                out = bytes(cls.buffer[:cls.pos])
                 cls.reset()
                 return out
 
@@ -45,20 +51,20 @@ class VT100Parser:
                 cls.reset()
                 return out
             else:
-                out = bytes(cls.buffer)
+                out = bytes(cls.buffer[:cls.pos])
                 cls.reset()
                 return out
 
         elif cls.state == 'CSI':
-            if 0x40 <= byte < 0x7e:
-                out = bytes(cls.buffer)
+            if 0x40 <= byte < 0x7e:  # Final CSI byte
+                out = bytes(cls.buffer[:cls.pos])
                 cls.reset()
                 return out
             return None
 
         elif cls.state == 'SS3':
             if byte in b'PQRSHF':
-                out = bytes(cls.buffer)
+                out = bytes(cls.buffer[:cls.pos])
                 cls.reset()
                 return out
             return None
@@ -66,6 +72,7 @@ class VT100Parser:
         else:
             cls.reset()
             return None
+
         
 class Widget(Screen):
 
