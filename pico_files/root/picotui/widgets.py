@@ -1,8 +1,7 @@
 from .basewidget import *
 from .editorext import *
 from .defs import *
-from .style import picotui_style
-
+from .style import *
 __all__ = (
     "ACTION_OK",
     "ACTION_CANCEL",
@@ -73,7 +72,7 @@ class Dialog(Widget):
 
         # Redraw widgets with cursor off
         self.cursor(False)
-        self.dialog_box(self.x, self.y, self.w, self.h, self.title,picotui_style['dialog_pt'])
+        self.dialog_box(self.x, self.y, self.w, self.h, self.title,picotui_style[DIALOG_PT])
         for w in self.childs:
             w.redraw()
         # Then give widget in focus a chance to enable cursor
@@ -186,12 +185,12 @@ class WButton(FocusableWidget):
     def redraw(self):
         self.goto(self.x, self.y)
         if self.disabled:
-            self.attr_color(C_WHITE, C_GRAY)
+            self.attr_color(picotui_style[BUTTON_DISABLE_FRONT_COLOR], picotui_style[BUTTON_DISABLE_BG_COLOR])
         else:
             if self.focus:
-                self.attr_color(C_B_WHITE, C_GREEN)
+                self.attr_color(picotui_style[BUTTON_FOCUS_FRONT_COLOR], picotui_style[BUTTON_FOCUS_BG_COLOR])
             else:
-                self.attr_color(C_BLACK, C_GREEN)
+                self.attr_color(picotui_style[BUTTON_NO_FOCUS_FRONT_COLOR], picotui_style[BUTTON_NO_FOCUS_BG_COLOR])
         self.wr(self.t.center(self.w))
         self.attr_reset()
 
@@ -228,7 +227,7 @@ class WCheckbox(ChoiceWidget):
     def redraw(self):
         self.goto(self.x, self.y)
         if self.focus:
-            self.attr_color(C_B_BLUE, None)
+            self.attr_color(picotui_style[CHECKBOX_FOCUS_FRONT_COLOR], picotui_style[CHECKBOX_FOCUS_BG_COLOR])
         self.wr("[x] " if self.choice else "[ ] ")
         self.wr(self.t)
         self.attr_reset()
@@ -261,7 +260,7 @@ class WRadioButton(ItemSelWidget):
     def redraw(self):
         i = 0
         if self.focus:
-            self.attr_color(C_B_BLUE, None)
+            self.attr_color(picotui_style[RADIOBUTTON_FOCUS_FRONT_COLOR], picotui_style[RADIOBUTTON_FOCUS_BG_COLOR])
         for t in self.items:
             self.goto(self.x, self.y + i)
             self.wr("(*) " if self.choice == i else "( ) ")
@@ -390,9 +389,9 @@ class WDropDown(ChoiceWidget):
     def redraw(self):
         self.goto(self.x, self.y)
         if self.focus:
-            self.attr_color(C_B_WHITE, C_CYAN)
+            self.attr_color(picotui_style[DROPDOWN_FOCUS_FRONT_COLOR], picotui_style[DROPDOWN_FOCUS_BG_COLOR])
         else:
-            self.attr_color(C_BLACK, C_CYAN)
+            self.attr_color(picotui_style[DROPDOWN_NO_FOCUS_FRONT_COLOR], picotui_style[DROPDOWN_NO_FOCUS_BG_COLOR])
         self.wr_fixedw(self.items[self.choice], self.w - 1)
         self.attr_reset()
         self.wr(DOWN_ARROW)

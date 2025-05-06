@@ -1,7 +1,7 @@
 import os
 #import signal
 from picocalc import terminal
-from .style import picotui_style
+from .style import picotui_style,DEFAULT_FRONT_COLOR ,DEFAULT_BG_COLOR
 class Screen:
     style = picotui_style
     @staticmethod
@@ -58,7 +58,7 @@ class Screen:
     def attr_reset():
         #print("attr_reset")
         Screen.wr("\x1b[0m")
-        Screen.attr_color(Screen.style['def_fcolor'], Screen.style['def_bcolor'])
+        Screen.attr_color(Screen.style[DEFAULT_FRONT_COLOR], Screen.style[DEFAULT_BG_COLOR])
         #Screen.attr_color(0,7)# Reset to default colors for gui(black on white)
 
     @staticmethod
