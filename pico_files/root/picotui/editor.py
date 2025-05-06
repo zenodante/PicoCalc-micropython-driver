@@ -210,7 +210,7 @@ class Editor(Widget):
                 self.content[self.cur_line] = l
                 self.update_line()
             else:
-                l = l[:self.col + self.margin] + str(key) + l[self.col + self.margin:]
+                l = l[:self.col + self.margin] + key + l[self.col + self.margin:]
                 self.content[self.cur_line] = l
                 self.col += 1
                 self.adjust_cursor_eol()
