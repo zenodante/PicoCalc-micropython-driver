@@ -1,5 +1,5 @@
 # Colors
-
+from micropython import const
 C_BLACK    = 0
 C_RED      = 1
 C_GREEN    = 2
@@ -23,25 +23,25 @@ def C_PAIR(fg, bg):
 
 # Keys
 
-KEY_UP = 1
-KEY_DOWN = 2
-KEY_LEFT = 3
-KEY_RIGHT = 4
-KEY_HOME = 5
-KEY_END = 6
-KEY_PGUP = 7
-KEY_PGDN = 8
-KEY_QUIT = 9
-KEY_ENTER = 10
-KEY_BACKSPACE = 11
-KEY_DELETE = 12
+KEY_UP = const(1)
+KEY_DOWN = const(2)
+KEY_LEFT = const(3)
+KEY_RIGHT = const(4)
+KEY_HOME = const(5)
+KEY_END = const(6)
+KEY_PGUP = const(7)
+KEY_PGDN = const(8)
+KEY_QUIT = const(9)
+KEY_ENTER = const(10)
+KEY_BACKSPACE = const(11)
+KEY_DELETE = const(12)
 KEY_TAB = b"\t"
 KEY_SHIFT_TAB = b"\x1b[Z"
-KEY_ESC = 20
-KEY_F1 = 30
-KEY_F2 = 31
-KEY_F3 = 32
-KEY_F4 = 33
+KEY_ESC = const(20)
+KEY_F1 = const(30)
+KEY_F2 = const(31)
+KEY_F3 = const(32)
+KEY_F4 = const(33)
 KEY_F5 = b'\x1b[15~'
 KEY_F6 = b'\x1b[17~'
 KEY_F7 = b'\x1b[18~'
