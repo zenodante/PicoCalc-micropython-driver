@@ -305,9 +305,9 @@ class WListBox(EditorExt, ChoiceWidget):
         hlite = self.cur_line == i
         if hlite:
             if self.focus:
-                self.attr_color(C_B_WHITE, C_GREEN)
+                self.attr_color(picotui_style[LISTBOX_FOCUS_FRONT_COLOR], picotui_style[LISTBOX_FOCUS_BG_COLOR])
             else:
-                self.attr_color(C_BLACK, C_GREEN)
+                self.attr_color(picotui_style[LISTBOX_NO_FOCUS_FRONT_COLOR], picotui_style[LISTBOX_NO_FOCUS_BG_COLOR])
         if i != -1:
             l = self.render_line(l)[:self.width]
             self.wr(l)
@@ -456,10 +456,10 @@ class WTextEntry(EditorExt, EditableWidget):
 
     def show_line(self, l, i):
         if self.just_started:
-            fg = C_WHITE
+            fg = picotui_style[TEXTENTRY_JUST_START_FONT_COLOR]
         else:
-            fg = C_BLACK
-        self.attr_color(fg, C_CYAN)
+            fg = picotui_style[TEXTENTRY_NO_JUST_START_FONT_COLOR]
+        self.attr_color(fg, picotui_style[TEXTENTRY_BG_COLOR])
         super().show_line(l, i)
         self.attr_reset()
 
@@ -486,7 +486,7 @@ class WMultiEntry(EditorExt, EditableWidget):
         self.set_lines(lines)
 
     def show_line(self, l, i):
-        self.attr_color(C_BLACK, C_CYAN)
+        self.attr_color(picotui_style[MULTIENTRY_FRONT_COLOR], picotui_style[MULTIENTRY_BG_COLOR])
         super().show_line(l, i)
         self.attr_reset()
 

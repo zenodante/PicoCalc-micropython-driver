@@ -1,7 +1,7 @@
 from .screen import Screen
 from .basewidget import *
 from .defs import *
-
+from .style import *
 
 class WMenuBar(ItemSelWidget):
 
@@ -21,7 +21,7 @@ class WMenuBar(ItemSelWidget):
         i = 0
         for name, pulldown in self.items:
             if self.focus and i == self.choice:
-                self.attr_color(C_B_WHITE, C_BLACK)
+                self.attr_color(picotui_style[MANUBAR_FRONT_COLOR], picotui_style[MANUBAR_BG_COLOR])
             self.wr(b"  ")
             self.wr(name)
             self.wr(b"  ")
@@ -131,7 +131,7 @@ class WMenuBox(ItemSelWidget):
         for item in self.items:
             self.goto(self.x + 1, self.y + i + 1)
             if i == self.choice:
-                self.attr_color(C_B_WHITE, C_BLACK)
+                self.attr_color(picotui_style[MANUBOX_FRONT_COLOR], picotui_style[MANUBOX_BG_COLOR])
             self.wr_fixedw(item[0], self.w - 2)
             self.attr_reset()
             i += 1

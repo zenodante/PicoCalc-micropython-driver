@@ -13,10 +13,10 @@ ACTION_PREV = const(1003)
 
 class VT100Parser:
     state = 'IDLE'
-    buffer = bytearray(5)  # 预分配最多5字节
+    buffer = bytearray(5)  # 
     pos = 0
     
-    # 直接将KEYMAP融合到解析器中
+    # 
     KEY_UP = const(1)
     KEY_DOWN = const(2)
     KEY_LEFT = const(3)
