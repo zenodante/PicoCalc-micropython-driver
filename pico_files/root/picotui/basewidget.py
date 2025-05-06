@@ -18,7 +18,7 @@ class VT100Parser:
     @classmethod
     def reset(cls):
         cls.state = 'IDLE'
-        cls.buffer.clear()
+        cls.buffer= bytearray()
 
     @classmethod
     def feed(cls, byte):
