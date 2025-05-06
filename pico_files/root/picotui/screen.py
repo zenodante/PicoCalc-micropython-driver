@@ -97,18 +97,18 @@ class Screen:
             self.wr("\xb3")
             top += 1
 
-    def clear_box(self, left, top, width, height):
+    def clear_box(self, left, top, width, height,pattern=" "):
         # doesn't work
         #self.wr("\x1b[%s;%s;%s;%s$z" % (top + 1, left + 1, top + height, left + width))
-        s = " " * width
+        s = pattern * width
         bottom = top + height
         while top < bottom:
             self.goto(left, top)
             self.wr(s)
             top += 1
 
-    def dialog_box(self, left, top, width, height, title=""):
-        self.clear_box(left + 1, top + 1, width - 2, height - 2)
+    def dialog_box(self, left, top, width, height, title="", bg_pattern=" "):
+        self.clear_box(left + 1, top + 1, width - 2, height - 2,bg_pattern)
         self.draw_box(left, top, width, height)
         if title:
             #pos = (width - len(title)) / 2

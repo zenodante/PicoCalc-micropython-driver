@@ -1,7 +1,7 @@
 from .basewidget import *
 from .editorext import *
 from .defs import *
-
+from .style import picotui_style
 
 __all__ = (
     "ACTION_OK",
@@ -73,7 +73,7 @@ class Dialog(Widget):
 
         # Redraw widgets with cursor off
         self.cursor(False)
-        self.dialog_box(self.x, self.y, self.w, self.h, self.title)
+        self.dialog_box(self.x, self.y, self.w, self.h, self.title,picotui_style['dialog_pt'])
         for w in self.childs:
             w.redraw()
         # Then give widget in focus a chance to enable cursor
