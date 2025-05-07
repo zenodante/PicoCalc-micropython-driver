@@ -12,7 +12,7 @@ from .defs import *
 
 class Editor(Widget):
 
-    def __init__(self, x=0, y=0, width=80, height=24):
+    def __init__(self, x=0, y=0, width=SCREEN_CHR_WIDTH, height=SCREEN_CHR_HEIGHT):
         Widget.__init__(self)
         self.top_line = 0
         self.cur_line = 0
