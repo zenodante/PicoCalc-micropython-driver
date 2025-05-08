@@ -21,7 +21,12 @@ C_B_WHITE    = C_WHITE | ATTR_INTENSITY
 def C_PAIR(fg, bg):
     return (bg << 4) + fg
 
+
+SCREEN_CHR_WIDTH = const(53)
+SCREEN_CHR_HEIGHT= const(40)
+
 # Keys
+
 
 KEY_UP = const(1)
 KEY_DOWN = const(2)
@@ -36,18 +41,20 @@ KEY_ENTER = const(10)
 KEY_BACKSPACE = const(11)
 KEY_DELETE = const(12)
 KEY_TAB = b"\t"
-KEY_SHIFT_TAB = b"\x1b[Z"
+KEY_SHIFT_TAB = const(13)  # 
 KEY_ESC = const(20)
 KEY_F1 = const(30)
 KEY_F2 = const(31)
 KEY_F3 = const(32)
 KEY_F4 = const(33)
-KEY_F5 = b'\x1b[15~'
-KEY_F6 = b'\x1b[17~'
-KEY_F7 = b'\x1b[18~'
-KEY_F8 = b'\x1b[19~'
-KEY_F9 = b'\x1b[20~'
-KEY_F10 = b'\x1b[21~'
+KEY_F5 = const(34)  # 
+KEY_F6 = const(35)  # 
+KEY_F7 = const(36)  # 
+KEY_F8 = const(37) # 
+KEY_F9 = const(38)  # 
+KEY_F10 = const(39)  # 
+
+
 
 KEYMAP = {
 b"\x1b[A": KEY_UP,

@@ -6,7 +6,7 @@
 import sys
 import os
 from .editor import *
-
+from .defs import SCREEN_CHR_WIDTH,SCREEN_CHR_HEIGHT
 
 # Edit single line, quit on Enter/Esc
 class LineEditor(Editor):
@@ -94,9 +94,9 @@ class CharColorViewer(Viewer):
 
 class EditorExt(Editor):
 
-    screen_width = 80
+    screen_width = SCREEN_CHR_WIDTH
 
-    def __init__(self, left=0, top=0, width=80, height=24):
+    def __init__(self, left=0, top=0, width=SCREEN_CHR_WIDTH, height=SCREEN_CHR_HEIGHT):
         super().__init__(left, top, width, height)
         # +1 assumes there's a border around editor pane
         self.status_y = top + height + 1
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     1/0
 
 #    e.cls()
-    e.draw_box(0, 0, 62, 27)
+    e.draw_box(0, 0, 53, 27)
     e.set_lines(content)
     e.loop()
     e.deinit_tty()

@@ -1,5 +1,8 @@
 from micropython import const
 
+
+
+
 DEFAULT_FRONT_COLOR = const(0)
 DEFAULT_BG_COLOR = const(1)
 DIALOG_PT = const(2)
