@@ -1,6 +1,6 @@
 from picotui.basewidget import Widget,ChoiceWidget,ACTION_OK
 from picotui.defs import *
-from picotui.widgets import Dialog,WButton
+from picotui.widgets import Dialog,WButton,WListBox
 from picotui.context import Context
 from picotui.screen import Screen
 from picotui.dialogs import DConfirmation
@@ -70,11 +70,20 @@ class WPopButtonsGroup(Dialog):
         return self.loop()
 
 
-class WFileExplorer(Dialog):
+class FileList():
+    def __init__(self):
+        pass
+
+
+class FileExplorer(Dialog):
     def __init__(self, x, y, w=53, h=40):
         super().__init__(x, y, w, h, title="File Explorer")
         self.bar =WFexpStateBar(51)
         self.add(1,38,self.bar)
+        self.filenamelist = ['..','a.py','bddf.txt','ggeter.py','bbnb.bmp']
+        self.filelistBox = WListBox(51, 37, self.filenamelist)
+        self.add(1, 1, self.filelistBox)
+        self.filelistBox.on("changed",self.updatebar)
 
     def handle_key(self, key):
         if key == KEY_ESC:
@@ -82,10 +91,18 @@ class WFileExplorer(Dialog):
             res = WPopButtonsGroup(10,17,33,6,"Do you want to quit?",['YES','CANCEL']).result()
             if res == 1:
                 return ACTION_OK
-            else:
-                self.redraw()
+            #else:
+            #    self.redraw()
 
+    def updatebar(self):
+        choice = self.filelistBox.choice
+        filename  = self.filenamelist[choice]
+        if filename == '..':
+            self.bar.updateGuid(filename)
+        else:
+            self.bar.updateGuid(filename.split('.')[-1])
 
+        
 
 def testPop():
     with Context():
@@ -93,6 +110,6 @@ def testPop():
         Screen.cls()
         Screen.attr_reset()
         #a=WPopButtons(10,6,33,6,'Do you want to quit?',['YES','CANCEL'])
-        a = WFileExplorer(0,0)
+        a = FileExplorer(0,0)
         a.loop()
     
