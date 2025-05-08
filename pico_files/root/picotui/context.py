@@ -16,6 +16,8 @@ class Context:
         Screen.goto(1, 1)
         Screen.cursor(True)
         Screen.deinit_tty()
+        if self.cls:
+            Screen.cls()
         # This makes sure that entire screenful is scrolled up, and
         # any further output happens on a normal terminal line.
         #print()
