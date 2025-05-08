@@ -13,7 +13,7 @@ class Context:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        Screen.goto(1, 1)
+        Screen.goto(0, 0)
         Screen.cursor(True)
         Screen.deinit_tty()
         if self.cls:

@@ -1,9 +1,13 @@
 from picotui.basewidget import Widget,ChoiceWidget
 from picotui.defs import *
-from picotui.widgets import Dialog
-
+from picotui.widgets import Dialog,WButton
+from picotui.context import Context
+from picotui.screen import Screen
 FEXP_H = '\x1b[33;44m'
 FEXP_N = '\x1b[37;44m'
+
+
+
 class WFexpStateBar(Widget):
     functionGuid = {
         'default':'',
@@ -24,17 +28,40 @@ class WFexpStateBar(Widget):
     
     def redraw(self):
         self.goto(self.x, self.y)
-        self.wr(self.t, self.w)
+        self.wr(self.t)
 
 
 class WPopButtons(Dialog):
-    def __init__(self, x, y, w, h, title,keyNames, sel_key=0):
-        self.title = title
-        self.keyNum = len(keyNames)
-        self.middlePointSetp = (w-2)//self.keyNum
-        
+    def __init__(self, x, y, w, h, notice,keyNames, sel_key=0):
         super().__init__(x, y, w, h)
+        self.notice = notice
+        self.keyNum = len(keyNames)
+        middlePointSetp = w//(self.keyNum+1)
+        x_loc=(w - len(notice))//2
+        self.add(x_loc, 1, notice)
+        for i in range(len(keyNames)):
+            name = keyNames[i]
+            width = max(len(name)+2,8)
+            b=WButton(width,name)
+            x_loc = middlePointSetp*(i+1) - (width//2)
+            self.add(x_loc,h-2,b)
 
+    def clear_box(self, left, top, width, height,pattern=" "):
+        s = '\xb1'*SCREEN_CHR_WIDTH
+        for i in range(SCREEN_CHR_HEIGHT):
+            self.goto(0,i)
+            self.wr(s)
+
+        super().clear_box(left, top, width, height,pattern)
+
+    def draw_box(self, left, top, width, height):
+        super().draw_box(left, top, width, height)
+        #draw shadow
+        self.goto(left+1,top+height)
+        self.wr('\xdb'*width)
+        for i in range(height -1):
+            self.goto(left+width,top+1+i)
+            self.wr('\xdb')
 
 
 
@@ -48,3 +75,13 @@ class WFileExplorer(ChoiceWidget):
             #show the question for quite
             pass
 
+
+
+def testPop():
+    with Context():
+        Screen.attr_color(C_WHITE, C_BLUE)
+        Screen.cls()
+        Screen.attr_reset()
+        a=WPopButtons(10,6,33,6,'Do you want to quit?',['YES','CANCEL'])
+        a.loop()
+    
