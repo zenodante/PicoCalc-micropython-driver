@@ -1,5 +1,6 @@
 from picotui.basewidget import Widget,ChoiceWidget
 from picotui.defs import *
+from picotui.widgets import Dialog
 
 FEXP_H = '\x1b[33;44m'
 FEXP_N = '\x1b[37;44m'
@@ -26,8 +27,15 @@ class WFexpStateBar(Widget):
         self.wr(self.t, self.w)
 
 
-class WPopButtons(WPopupList):
-    
+class WPopButtons(Dialog):
+    def __init__(self, x, y, w, h, title,keyNames, sel_key=0):
+        self.title = title
+        self.keyNum = len(keyNames)
+        self.middlePointSetp = (w-2)//self.keyNum
+        
+        super().__init__(x, y, w, h)
+
+
 
 
 class WFileExplorer(ChoiceWidget):
