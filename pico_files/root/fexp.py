@@ -4,10 +4,26 @@ from picotui.widgets import Dialog,WButton,WListBox
 from picotui.context import Context
 from picotui.screen import Screen
 from picotui.dialogs import DConfirmation
-FEXP_H = '\x1b[33;44m'
-FEXP_N = '\x1b[37;44m'
+import os
+FEXP_H = '\x1b[33m'
+FEXP_N = '\x1b[30m'
 
 
+
+def list_dir_separately(path="."):
+    files = []
+    dirs = []
+
+    for entry in os.listdir(path):
+        full_path = path + "/" + entry if path != "/" else "/" + entry
+        mode = os.stat(full_path)[0]
+        if mode & 0x4000:  # 0x4000 means it's a directory
+            dirs.append(entry)
+        else:
+            size = os.stat(full_path)[6]
+            files.append((entry,size))
+
+    return dirs, files
 
 class WFexpStateBar(Widget):
     functionGuid = {
@@ -30,12 +46,16 @@ class WFexpStateBar(Widget):
     
     def redraw(self):
         self.goto(self.x, self.y)
+        self.wr(' '*(SCREEN_CHR_WIDTH-2))
+        self.goto(self.x, self.y)
         self.wr(self.t)
+        #self.clear_to_eol()
 
 
 class WPopButtonsGroup(Dialog):
     def __init__(self, x, y, w, h, notice,keyNames):
         super().__init__(x, y, w, h)
+
         self.notice = notice
         self.keyNum = len(keyNames)
         middlePointSetp = w//(self.keyNum+1)
@@ -79,23 +99,34 @@ class FileExplorer(Dialog):
     def __init__(self, x, y, w=53, h=40):
         super().__init__(x, y, w, h, title="File Explorer")
         self.bar =WFexpStateBar(51)
-        self.add(1,38,self.bar)
-        self.filenamelist = ['..','a.py','bddf.txt','ggeter.py','bbnb.bmp']
-        self.filelistBox = WListBox(51, 37, self.filenamelist)
+        self.currentRoot = '.'
+        dirs,files = list_dir_separately(self.currentRoot)
+        self.filenamelist = []
+        for dir in dirs:
+            self.filenamelist.append(dir+'/')
+        for file in files:
+            self.filenamelist.append(file[0])
+        self.filelistBox = WListBox(51, 34, self.filenamelist)
         self.add(1, 1, self.filelistBox)
         self.filelistBox.on("changed",self.updatebar)
+        self.add(1,38,self.bar)
+
 
     def handle_key(self, key):
+        res = super().handle_key(key)
         if key == KEY_ESC:
             #show the question for quit
             res = WPopButtonsGroup(10,17,33,6,"Do you want to quit?",['YES','CANCEL']).result()
             if res == 1:
                 return ACTION_OK
-            #else:
-            #    self.redraw()
-
-    def updatebar(self):
-        choice = self.filelistBox.choice
+            else:
+                self.redraw()
+        else:
+            return res
+    
+    def updatebar(self,trigerWidget):
+        #choice = self.filelistBox.choice
+        choice = trigerWidget.choice
         filename  = self.filenamelist[choice]
         if filename == '..':
             self.bar.updateGuid(filename)
