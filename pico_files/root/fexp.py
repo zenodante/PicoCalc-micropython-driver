@@ -127,7 +127,10 @@ class WFileList(ItemSelWidget):
         elif key == KEY_ENTER:
             if self.items[self.choice]=='..':
                 last_slash_index = self.path.rfind('/')
-                self.path = self.path[:last_slash_index]
+                if last_slash_index == -1:
+                    self.path = '/'
+                else:
+                    self.path = self.path[:last_slash_index]
                 self.refreshList(self.path)
                 self.redraw()
                 self.signal("changed")
