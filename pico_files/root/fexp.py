@@ -1,9 +1,10 @@
-from picotui.basewidget import Widget,ChoiceWidget,ACTION_OK
+from picotui.basewidget import Widget,ItemSelWidget,ACTION_OK
 from picotui.defs import *
 from picotui.widgets import Dialog,WButton,WListBox
 from picotui.context import Context
 from picotui.screen import Screen
 from picotui.dialogs import DConfirmation
+from picotui.style import *
 import os
 FEXP_H = '\x1b[33m'
 FEXP_N = '\x1b[30m'
@@ -90,23 +91,105 @@ class WPopButtonsGroup(Dialog):
         return self.loop()
 
 
-class FileList():
-    def __init__(self):
-        pass
+class WFileList(ItemSelWidget):
+    def __init__(self,w,h,path='/'):
+        self.path = path
+        super().__init__([])
+        self.w = w
+        self.h = h
+        self.refreshList(path)
+
+    
+    def redraw(self):
+        dispLineNum = self.currentdispBottom - self.currentdispTop + 1
+        for i in range(dispLineNum):
+            itemIdx = i + self.currentdispTop
+            self.goto(self.x,self.y+i)
+            self.show_line(self.items[itemIdx],itemIdx)
+
+    def createListItem(self,path):
+        folders,files=list_dir_separately(path)
+        items = list()
+        if path !='.' or path != '/': 
+            items.append('..')
+        for folder in folders:
+            items.append(folder +'/')
+        for file in files:
+            items.append(file[0])
+        return items
+
+
+    def handle_key(self,key):
+        if key == KEY_UP:
+            self.move_sel(-1)
+        elif key == KEY_DOWN:
+            self.move_sel(1)
+        elif key == KEY_ENTER:
+            if self.items[self.choice]=='..':
+                last_slash_index = self.path.rfind('/')
+                self.path = self.path[:last_slash_index]
+                self.refreshList(self.path)
+                self.redraw()
+                self.signal("changed")
+            elif self.items[self.choice][-1]=='/':
+                self.path = self.path + "/" + self.items[self.choice][:-1] if self.path != "/" else "/" + self.items[self.choice][:-1]
+                self.refreshList(self.path)
+                self.redraw()
+                self.signal("changed")
+    
+    def refreshList(self,path):
+        self.items=self.createListItem(path)
+        self.choice  = 0
+        self.totalLineNum = len(self.items)
+        self.currentdispTop = 0
+        self.currentdispBottom = min(self.totalLineNum,self.h)-1
+
+
+    def move_sel(self,direction):
+        oldChoice = self.choice
+        if self.choice + direction <0:
+            self.choice = 0
+        elif self.choice + direction > self.totalLineNum -1:
+            self.choice = self.totalLineNum -1
+        else:
+            self.choice = (self.choice + direction)
+        if self.choice < self.currentdispTop:
+            self.currentdispTop -=1
+            self.currentdispBottom = min(self.currentdispTop + self.h,self.totalLineNum)-1
+        elif self.choice< self.currentdispBottom:
+            self.currentdispTop +=1
+            self.currentdispBottom +=1    
+        if self.choice != oldChoice:
+            self.redraw()
+            self.signal("changed")
+
+    def show_line(self, l, i):
+        hlite = self.choice == i
+        if hlite:
+            if self.focus:
+                self.attr_color(picotui_style[LISTBOX_FOCUS_FRONT_COLOR], picotui_style[LISTBOX_FOCUS_BG_COLOR])
+            else:
+                self.attr_color(picotui_style[LISTBOX_NO_FOCUS_FRONT_COLOR], picotui_style[LISTBOX_NO_FOCUS_BG_COLOR])
+        if i != -1:
+            self.wr(l)
+        self.clear_num_pos(self.w - len(l))
+        if hlite:
+            self.attr_reset()
 
 
 class FileExplorer(Dialog):
-    def __init__(self, x, y, w=53, h=40):
+    def __init__(self, x, y,path='/', w=53, h=40):
         super().__init__(x, y, w, h, title="File Explorer")
         self.bar =WFexpStateBar(51)
-        self.currentRoot = '.'
-        dirs,files = list_dir_separately(self.currentRoot)
-        self.filenamelist = []
-        for dir in dirs:
-            self.filenamelist.append(dir+'/')
-        for file in files:
-            self.filenamelist.append(file[0])
-        self.filelistBox = WListBox(51, 34, self.filenamelist)
+        #self.currentRoot = '.'
+        #dirs,files = list_dir_separately(self.currentRoot)
+        #self.filenamelist = []
+        #for dir in dirs:
+        #    self.filenamelist.append(dir+'/')
+        #for file in files:
+        #    self.filenamelist.append(file[0])
+        #self.filelistBox = WListBox(51, 34, self.filenamelist)
+        self.filelistBox = WFileList(51,37,path)
         self.add(1, 1, self.filelistBox)
         self.filelistBox.on("changed",self.updatebar)
         self.add(1,38,self.bar)
